@@ -3,52 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PixelJunk Monsters Web Editor PoC</title>
+    <title>PJM Web Level Editor - Hub</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Pako for ZLIB compression -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
-    <script type="module" src="dist/app.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>PJM Web Level Editor PoC</h1>
-        <p>Modify the game's data archive entirely in your browser without unpacking to your drive.</p>
+        <h1>PixelJunk Monsters Web Level Editor</h1>
+        <p class="intro">
+            Welcome! This is a suite of browser-based proofs of concept (PoCs) working towards a full web-based level editor for <strong>PixelJunk Monsters Ultimate</strong> on PC.
+        </p>
         
-        <div class="section">
-            <h2>1. Original Archives</h2>
-            <div class="form-group">
-                <label for="pkiInput">Original <code>monsters.pkiwin</code>:</label>
-                <input type="file" id="pkiInput" accept=".pkiwin">
-            </div>
-            <div class="form-group">
-                <label for="pkdInput">Original <code>monsters.pkdwin</code>:</label>
-                <input type="file" id="pkdInput" accept=".pkdwin">
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>2. Replacement Data</h2>
-            <p>Select a modified file to inject into the repacked archive.</p>
-            <div class="form-group">
-                <label for="replaceFile">Modified File:</label>
-                <input type="file" id="replaceFile">
-            </div>
-            <div class="form-group">
-                <label for="replacePath">Target Internal Path:</label>
-                <input type="text" id="replacePath" value="data-common/textures/bgdata/bg/stage11.dds" style="width: 100%;">
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>3. Repack & Download</h2>
-            <button id="repackBtn" disabled>Repack Archive</button>
-            <div id="status" class="status-msg"></div>
+        <h2>Available Tools</h2>
+        <div class="poc-grid">
+            <a href="repacker.html" class="poc-card">
+                <h3>Archive Repacker</h3>
+                <p>Instantly extract and repack <code>monsters.pkdwin</code> game archives. Allows injecting modified assets.</p>
+            </a>
             
-            <div id="downloadSection" class="hidden">
-                <p>Repack successful! Download your files:</p>
-                <!-- These buttons serve as the Firefox fallback, bypassing popup blockers -->
-                <button id="downloadPkiBtn">Download monsters.pkiwin</button>
-                <button id="downloadPkdBtn">Download monsters.pkdwin</button>
+            <!-- Future PoCs can go here -->
+            <div class="poc-card placeholder">
+                <h3>Map Viewer (Coming Soon)</h3>
+                <p>Interactive viewer for rendering game levels, routes, and object placement in the browser.</p>
             </div>
         </div>
     </div>
