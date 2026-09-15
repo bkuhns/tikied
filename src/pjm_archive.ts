@@ -46,11 +46,18 @@ export class PJMArchive {
 
     /**
      * Hashes a string using the FNV-1 algorithm, matching the game's internal hashing.
+     * Automatically normalizes the path by prepending './' if missing and converting to lowercase.
      */
     static fnv1(str: string): number {
+        // The game engine hashes paths as lowercase and prefixed with './'
+        let normalized = str.toLowerCase().replace(/\\/g, '/');
+        if (!normalized.startsWith('./')) {
+            normalized = './' + normalized;
+        }
+
         let h = 0x811c9dc5;
-        for (let i = 0; i < str.length; i++) {
-            h = Math.imul(h, 0x01000193) ^ str.charCodeAt(i);
+        for (let i = 0; i < normalized.length; i++) {
+            h = Math.imul(h, 0x01000193) ^ normalized.charCodeAt(i);
         }
         return h >>> 0; // Convert to unsigned 32-bit integer
     }
@@ -125,5 +132,26 @@ export class PJMArchive {
             pkiBlob: new Blob([pkiBuffer]),
             pkdBlob: new Blob(pkdChunks)
         };
+    }
+
+    /**
+     * Extracts a single file from the PKDWIN archive and decompresses it.
+     */
+    async extractFile(pkdFile: File, path: string): Promise<Uint8Array | null> {
+        const hash = PJMArchive.fnv1(path);
+        const entry = this.entries.find(e => e.hash === hash);
+        if (!entry) return null;
+
+        const slice = pkdFile.slice(entry.offset, entry.offset + entry.compressedSize);
+        const buffer = await slice.arrayBuffer();
+        const compressedData = new Uint8Array(buffer);
+        
+        try {
+            // Decompress ZLIB chunk
+            return pako.inflate(compressedData);
+        } catch (e) {
+            console.error(`Failed to decompress file ${path}`, e);
+            return null;
+        }
     }
 }

@@ -145,3 +145,19 @@ button:disabled {
 #downloadSection button:hover {
     background-color: #27ae60;
 }
+
+.canvas-container {
+    margin-top: 20px;
+    width: 100%;
+    overflow: auto;
+    border: 1px solid #ccc;
+    background: #222;
+    text-align: center;
+}
+
+#stageCanvas {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}

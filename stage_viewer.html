@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Viewer - PJM Web Editor PoC</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Pako for ZLIB compression/decompression -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <script type="module" src="dist/stage_viewer_app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="index.html">← Back to Hub</a>
+        </nav>
+        <h1>Map Viewer</h1>
+        <p>Instantly extract and view stage backgrounds directly from the game archives.</p>
+        
+        <div class="section">
+            <h2>1. Select Game Archives</h2>
+            <div class="form-group">
+                <label for="pkiInput">Original <code>monsters.pkiwin</code>:</label>
+                <input type="file" id="pkiInput" accept=".pkiwin">
+            </div>
+            <div class="form-group">
+                <label for="pkdInput">Original <code>monsters.pkdwin</code>:</label>
+                <input type="file" id="pkdInput" accept=".pkdwin">
+            </div>
+            <button id="loadBtn" disabled>Load Archives</button>
+            <div id="status" class="status-msg"></div>
+        </div>
+
+        <div id="viewerSection" class="section hidden">
+            <h2>2. View Stage</h2>
+            <div class="form-group">
+                <label for="stageSelect">Select a Stage:</label>
+                <select id="stageSelect" style="padding: 5px; font-size: 1rem; width: 100%; max-width: 400px;"></select>
+            </div>
+            
+            <div class="canvas-container">
+                <canvas id="stageCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
