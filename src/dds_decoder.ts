@@ -1,9 +1,9 @@
 export class DDSDecoder {
     /**
      * Decodes a 32-bit uncompressed RGB DDS file (common in PJM backgrounds) 
-     * and draws it to an HTML Canvas, applying a vertical flip.
+     * and returns an ImageData object, applying a vertical flip.
      */
-    static drawToCanvas(ddsData: Uint8Array, canvas: HTMLCanvasElement): void {
+    static decodeToImageData(ddsData: Uint8Array): ImageData {
         const magic = new TextDecoder().decode(ddsData.slice(0, 4));
         if (magic !== "DDS ") {
             throw new Error("Not a valid DDS file.");
@@ -24,11 +24,11 @@ export class DDSDecoder {
             throw new Error(`Unsupported DDS format (Flags: 0x${flags.toString(16)}, Bits: ${rgbBitCount}). Expected 32-bit uncompressed RGB.`);
         }
 
+        // Create an offscreen canvas to get the ImageData wrapper
+        const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error("Could not get canvas context.");
-
+        const ctx = canvas.getContext('2d')!;
         const imageData = ctx.createImageData(width, height);
         const pixels = imageData.data;
 
@@ -53,6 +53,6 @@ export class DDSDecoder {
             }
         }
 
-        ctx.putImageData(imageData, 0, 0);
+        return imageData;
     }
 }

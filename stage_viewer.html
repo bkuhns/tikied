@@ -37,6 +37,17 @@
                 <label for="stageSelect">Select a Stage:</label>
                 <select id="stageSelect" style="padding: 5px; font-size: 1rem; width: 100%; max-width: 400px;"></select>
             </div>
+
+            <div class="form-group">
+                <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-right: 15px;">
+                    <input type="checkbox" id="showTreesCheck" checked>
+                    Show Trees
+                </label>
+                <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="showRocksCheck" checked>
+                    Show Rocks
+                </label>
+            </div>
             
             <div class="canvas-container">
                 <canvas id="stageCanvas"></canvas>
