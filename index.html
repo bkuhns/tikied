@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PixelJunk Monsters Web Editor PoC</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Pako for ZLIB compression -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <script type="module" src="dist/app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>PJM Web Level Editor PoC</h1>
+        <p>Modify the game's data archive entirely in your browser without unpacking to your drive.</p>
+        
+        <div class="section">
+            <h2>1. Original Archives</h2>
+            <div class="form-group">
+                <label for="pkiInput">Original <code>monsters.pkiwin</code>:</label>
+                <input type="file" id="pkiInput" accept=".pkiwin">
+            </div>
+            <div class="form-group">
+                <label for="pkdInput">Original <code>monsters.pkdwin</code>:</label>
+                <input type="file" id="pkdInput" accept=".pkdwin">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>2. Replacement Data</h2>
+            <p>Select a modified file to inject into the repacked archive.</p>
+            <div class="form-group">
+                <label for="replaceFile">Modified File:</label>
+                <input type="file" id="replaceFile">
+            </div>
+            <div class="form-group">
+                <label for="replacePath">Target Internal Path:</label>
+                <input type="text" id="replacePath" value="data-common/textures/bgdata/bg/stage11.dds" style="width: 100%;">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>3. Repack & Download</h2>
+            <button id="repackBtn" disabled>Repack Archive</button>
+            <div id="status" class="status-msg"></div>
+            
+            <div id="downloadSection" class="hidden">
+                <p>Repack successful! Download your files:</p>
+                <!-- These buttons serve as the Firefox fallback, bypassing popup blockers -->
+                <button id="downloadPkiBtn">Download monsters.pkiwin</button>
+                <button id="downloadPkdBtn">Download monsters.pkdwin</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
