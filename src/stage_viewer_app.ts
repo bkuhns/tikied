@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showTreesCheck = document.getElementById('showTreesCheck') as HTMLInputElement;
     const showRocksCheck = document.getElementById('showRocksCheck') as HTMLInputElement;
+    const showObjectsCheck = document.getElementById('showObjectsCheck') as HTMLInputElement;
+    const showBridgesCheck = document.getElementById('showBridgesCheck') as HTMLInputElement;
     const showWaterCheck = document.getElementById('showWaterCheck') as HTMLInputElement;
     const showHudBarCheck = document.getElementById('showHudBarCheck') as HTMLInputElement;
     const maximizeBtn = document.getElementById('maximizeBtn') as HTMLButtonElement;
@@ -52,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let treeInstances: SpriteInstance[] = [];
     let rockInstances: SpriteInstance[] = [];
     let bridgeInstances: SpriteInstance[] = [];
+    let objectInstances: SpriteInstance[] = [];
 
     interface SpriteMeta {
         path: string;
@@ -140,6 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showTreesCheck.addEventListener('change', render);
     showRocksCheck.addEventListener('change', render);
+    showObjectsCheck.addEventListener('change', render);
+    showBridgesCheck.addEventListener('change', render);
     showWaterCheck.addEventListener('change', render);
     showHudBarCheck.addEventListener('change', render);
 
@@ -338,9 +343,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Sort instances by Y coordinate for correct depth rendering (painter's algorithm)
         const allInstances: SpriteInstance[] = [];
-        allInstances.push(...bridgeInstances); // Bridges are background elements, so push them first
+        if (showBridgesCheck.checked) allInstances.push(...bridgeInstances); // Bridges are background elements
         if (showTreesCheck.checked) allInstances.push(...treeInstances);
         if (showRocksCheck.checked) allInstances.push(...rockInstances);
+        if (showObjectsCheck.checked) allInstances.push(...objectInstances);
         
         allInstances.sort((a, b) => (a.z ?? a.y) - (b.z ?? b.y));
 
@@ -390,6 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const forestBytes = await archive.extractFile(pkdFile, forestPath);
             treeInstances = [];
             bridgeInstances = [];
+            objectInstances = [];
             const typesToLoad = new Set<string>();
             typesToLoad.add('hud_bar');
             
@@ -458,24 +465,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Add home_grass (drawn first/lowest Z)
                     const grassX = hx; // The grass is visually centered on the home
                     const grassY = hy + 50; // The ground is visually below the home
-                    treeInstances.push({ x: grassX, y: grassY, z: hy + 25, type: "home_grass", ani: homeAni, r: 1, g: 1, b: 1 });
+                    objectInstances.push({ x: grassX, y: grassY, z: hy + 25, type: "home_grass", ani: homeAni, r: 1, g: 1, b: 1 });
                     
                     // Add home
-                    treeInstances.push({ x: hx, y: hy, z: hy + 50, type: "home", ani: homeAni, r: 1, g: 1, b: 1 });
+                    objectInstances.push({ x: hx, y: hy, z: hy + 50, type: "home", ani: homeAni, r: 1, g: 1, b: 1 });
                     
                     // Add gem_sign (home.pos + (-120, 0))
                     // When it was drawn at 'hy', it was vertically aligned perfectly.
                     // The game engine's Z parameter (+50) ensures it sorts on top of the hut!
                     const gemX = hx - 120;
                     const gemY = hy + 50; 
-                    treeInstances.push({ x: gemX, y: gemY, z: hy + 75, type: "gem_sign", ani: 0, r: 1, g: 1, b: 1 });
+                    objectInstances.push({ x: gemX, y: gemY, z: hy + 75, type: "gem_sign", ani: 0, r: 1, g: 1, b: 1 });
 
                     // Add research_sign (home_pos + (-122, -50))
                     // This visually sits 50 pixels above the gem_sign. 
                     // Its Z parameter (+100) ensures it sorts on top of everything!
                     const resX = hx - 122;
                     const resY = hy; 
-                    treeInstances.push({ x: resX, y: resY, z: hy + 100, type: "research_sign", ani: 0, r: 1, g: 1, b: 1 });
+                    objectInstances.push({ x: resX, y: resY, z: hy + 100, type: "research_sign", ani: 0, r: 1, g: 1, b: 1 });
                 }
             }
 
@@ -525,6 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
             treeInstances = [];
             rockInstances = [];
             bridgeInstances = [];
+            objectInstances = [];
             const ctx = stageCanvas.getContext('2d');
             ctx?.clearRect(0, 0, stageCanvas.width, stageCanvas.height);
         }
