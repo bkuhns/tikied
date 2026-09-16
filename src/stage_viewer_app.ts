@@ -125,6 +125,10 @@ document.addEventListener('DOMContentLoaded', () => {
             viewerSection.classList.remove('hidden');
             statusMsg.textContent = "Archives loaded! Select a stage to view.";
             
+            // Automatically maximize the viewer
+            viewerSection.classList.add('maximized');
+            maximizeBtn.textContent = 'Minimize View';
+            
             // Trigger first load
             await loadStage(stageSelect.value);
 
