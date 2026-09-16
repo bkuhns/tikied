@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const showRocksCheck = document.getElementById('showRocksCheck') as HTMLInputElement;
     const maximizeBtn = document.getElementById('maximizeBtn') as HTMLButtonElement;
 
+    const gridOverrides: Record<string, {cols: number, rows: number}> = {
+        "tree_beach": { cols: 2, rows: 4 }
+    };
+
     maximizeBtn.addEventListener('click', () => {
         viewerSection.classList.toggle('maximized');
         if (viewerSection.classList.contains('maximized')) {
@@ -147,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!bytes) return;
 
         try {
-            const imgData = DDSDecoder.decodeToImageData(bytes, true); // true = flip sprite sheet vertically
+            const imgData = DDSDecoder.decodeToImageData(bytes, true); // flipVert = true
             const canvas = document.createElement('canvas');
             canvas.width = imgData.width;
             canvas.height = imgData.height;
@@ -165,69 +169,92 @@ document.addEventListener('DOMContentLoaded', () => {
     const scratchCtx = scratchCanvas.getContext('2d')!;
 
     function drawSprite(ctx: CanvasRenderingContext2D, inst: SpriteInstance) {
-        const sheet = spriteCache.get(inst.type);
-        const meta = SPRITE_SHEETS[inst.type];
-        if (!sheet || !meta) return;
+        try {
+            const sheet = spriteCache.get(inst.type);
+            const meta = SPRITE_SHEETS[inst.type];
+            if (!sheet || !meta) return;
 
-        const spriteWidth = meta.w;
-        const spriteHeight = meta.h;
-        const cols = Math.floor(sheet.width / spriteWidth);
-        const rows = Math.floor(sheet.height / spriteHeight);
-        const totalFrames = cols * rows;
-        
-        let ani = inst.ani;
-        // Apply hardcoded negative mapping for rocks
-        if (inst.type.startsWith("rock") && ani < 0) {
-            ani = NEGATIVE_ROCK_MAPPING[ani] ?? 0;
-        }
-
-        // Apply modulo wrapping for out-of-bounds indices (like ani=9 for an 8-frame rock sheet)
-        ani = Math.max(0, ani) % Math.max(1, totalFrames);
-
-        const sx = (ani % cols) * spriteWidth;
-        
-        // Because we flipped the entire sprite sheet vertically to fix the upside-down rendering,
-        // the original "Row 0" is now at the bottom of the canvas. We must invert the row index!
-        const row = Math.floor(ani / cols);
-        const invertedRow = (rows - 1) - row;
-        
-        const sy = invertedRow * spriteHeight;
-
-        // Apply scale (default 1)
-        const scale = inst.scale ?? 1.0;
-        const drawWidth = spriteWidth * scale;
-        const drawHeight = spriteHeight * scale;
-
-        // The engine appears to use Center anchoring (0.5, 0.5) by default
-        const dx = inst.x - (drawWidth / 2);
-        const dy = inst.y - (drawHeight / 2);
-
-        ctx.globalAlpha = inst.alpha ?? 1.0;
-
-        if (inst.r >= 0.99 && inst.g >= 0.99 && inst.b >= 0.99) {
-            // Fast path: no tinting needed
-            ctx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
-        } else {
-            // Tinting path
-            scratchCanvas.width = spriteWidth;
-            scratchCanvas.height = spriteHeight;
-            scratchCtx.clearRect(0, 0, spriteWidth, spriteHeight);
+            const spriteWidth = meta.w;
+            const spriteHeight = meta.h;
+            let cols = Math.floor(sheet.width / spriteWidth);
+            let rows = Math.floor(sheet.height / spriteHeight);
             
-            // 1. Draw the raw sprite
-            scratchCtx.globalCompositeOperation = 'source-over';
-            scratchCtx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, 0, 0, spriteWidth, spriteHeight);
+            if (gridOverrides[inst.type]) {
+                cols = gridOverrides[inst.type].cols;
+                rows = gridOverrides[inst.type].rows;
+            }
             
-            // 2. Apply multiply tint to everything (this turns transparent areas colored, which is bad)
-            scratchCtx.globalCompositeOperation = 'multiply';
-            scratchCtx.fillStyle = `rgb(${Math.floor(inst.r * 255)}, ${Math.floor(inst.g * 255)}, ${Math.floor(inst.b * 255)})`;
-            scratchCtx.fillRect(0, 0, spriteWidth, spriteHeight);
+            const totalFrames = cols * rows;
             
-            // 3. Mask out the transparent areas by using destination-in against the original sprite shape
-            scratchCtx.globalCompositeOperation = 'destination-in';
-            scratchCtx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, 0, 0, spriteWidth, spriteHeight);
+            let ani = inst.ani;
+            // Apply hardcoded negative mapping for rocks
+            if (inst.type.startsWith("rock") && ani < 0) {
+                ani = NEGATIVE_ROCK_MAPPING[ani] ?? 0;
+            }
 
-            // 4. Draw the tinted result to the main canvas
-            ctx.drawImage(scratchCanvas, 0, 0, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
+            // Apply modulo wrapping for out-of-bounds indices (like ani=9 for an 8-frame rock sheet)
+            ani = Math.max(0, ani) % Math.max(1, totalFrames);
+
+            let row = Math.floor(ani / cols);
+            let col = ani % cols;
+            
+            const sx = col * spriteWidth;
+            
+            row = (rows - 1) - row;  // Always invert rows.
+            const sy = row * spriteHeight;
+
+            // Apply scale (default 1)
+            const scale = inst.scale ?? 1.0;
+            const drawWidth = spriteWidth * scale;
+            const drawHeight = spriteHeight * scale;
+
+            // The engine appears to use Center anchoring (0.5, 0.5) by default
+            const dx = inst.x - (drawWidth / 2);
+            const dy = inst.y - (drawHeight / 2);
+
+            ctx.globalAlpha = inst.alpha ?? 1.0;
+
+            if (inst.r >= 0.99 && inst.g >= 0.99 && inst.b >= 0.99) {
+                // Fast path: no tinting needed
+                ctx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
+            } else {
+                // Resize scratch canvas if needed to avoid clipping
+                if (scratchCanvas.width < spriteWidth || scratchCanvas.height < spriteHeight) {
+                    scratchCanvas.width = spriteWidth;
+                    scratchCanvas.height = spriteHeight;
+                }
+                
+                scratchCtx.clearRect(0, 0, spriteWidth, spriteHeight);
+                
+                // Draw the specific sprite frame to the scratch canvas
+                scratchCtx.globalCompositeOperation = 'source-over';
+                scratchCtx.drawImage(
+                    sheet,
+                    sx, sy, spriteWidth, spriteHeight,
+                    0, 0, spriteWidth, spriteHeight
+                );
+
+                // Apply tint
+                scratchCtx.globalCompositeOperation = 'multiply';
+                scratchCtx.fillStyle = `rgb(${inst.r * 255}, ${inst.g * 255}, ${inst.b * 255})`;
+                scratchCtx.fillRect(0, 0, spriteWidth, spriteHeight);
+
+                // Apply alpha mask
+                scratchCtx.globalCompositeOperation = 'destination-in';
+                scratchCtx.drawImage(
+                    sheet,
+                    sx, sy, spriteWidth, spriteHeight,
+                    0, 0, spriteWidth, spriteHeight
+                );
+
+                ctx.drawImage(scratchCanvas, 0, 0, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
+            }
+            
+            // Reset alpha
+            ctx.globalAlpha = 1.0;
+        } catch (e: any) {
+            console.error("Error drawing sprite:", e);
+            statusMsg.textContent = "Error drawing sprite: " + e.message;
         }
     }
 
