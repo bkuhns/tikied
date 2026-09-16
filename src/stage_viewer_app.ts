@@ -21,28 +21,40 @@ document.addEventListener('DOMContentLoaded', () => {
     interface SpriteInstance {
         x: number;
         y: number;
+        z?: number;
         type: string;
         ani: number;
         r: number;
         g: number;
         b: number;
+        scale?: number;
     }
 
     let currentImageData: ImageData | null = null;
     let treeInstances: SpriteInstance[] = [];
     let rockInstances: SpriteInstance[] = [];
 
-    const SPRITE_SHEETS: Record<string, string> = {
-        "tree_spring": "data-common/textures/bgdata/objects/TreeSet_spring.dds",
-        "tree_summer": "data-common/textures/bgdata/objects/TreeSet_summer1.dds",
-        "tree_autumn": "data-common/textures/bgdata/objects/TreeSet_autumn1.dds",
-        "tree_winter": "data-common/textures/bgdata/objects/TreeSet_winter1.dds",
-        "tree_swamp": "data-common/textures/bgdata/objects/TreeSet_swamp1.dds",
-        "tree_bare": "data-common/textures/bgdata/objects/TreeSet_bare1.dds",
-        "tree_beach": "data-common/textures/bgdata/objects/TreeSet_beach.dds",
-        "rock_1": "data-common/textures/bgdata/objects/rockSet1.dds",
-        "log_obj": "data-common/textures/bgdata/objects/Log.dds",
-        "stumps": "data-common/textures/bgdata/objects/Stumps_2x2.dds"
+    interface SpriteMeta {
+        path: string;
+        w: number;
+        h: number;
+    }
+
+    const SPRITE_SHEETS: Record<string, SpriteMeta> = {
+        "tree_spring": { path: "data-common/textures/bgdata/objects/TreeSet_spring.dds", w: 128, h: 128 },
+        "tree_summer": { path: "data-common/textures/bgdata/objects/TreeSet_summer1.dds", w: 128, h: 128 },
+        "tree_autumn": { path: "data-common/textures/bgdata/objects/TreeSet_autumn1.dds", w: 128, h: 128 },
+        "tree_winter": { path: "data-common/textures/bgdata/objects/TreeSet_winter1.dds", w: 128, h: 128 },
+        "tree_swamp": { path: "data-common/textures/bgdata/objects/TreeSet_swamp1.dds", w: 128, h: 128 },
+        "tree_bare": { path: "data-common/textures/bgdata/objects/TreeSet_bare1.dds", w: 128, h: 128 },
+        "tree_beach": { path: "data-common/textures/bgdata/objects/TreeSet_beach.dds", w: 128, h: 128 },
+        "rock_1": { path: "data-common/textures/bgdata/objects/rockSet1.dds", w: 128, h: 128 },
+        "log_obj": { path: "data-common/textures/bgdata/objects/Log.dds", w: 128, h: 128 },
+        "stumps": { path: "data-common/textures/bgdata/objects/Stumps_2x2.dds", w: 128, h: 128 },
+        "home": { path: "data-common/textures/bgdata/objects/House1.dds", w: 256, h: 128 },
+        "home_grass": { path: "data-common/textures/bgdata/objects/House1_ground.dds", w: 512, h: 128 },
+        "gem_sign": { path: "data-common/textures/ingameui/main/gemsign.dds", w: 128, h: 128 },
+        "research_sign": { path: "data-common/textures/ingameui/resource/researchsign.dds", w: 128, h: 128 }
     };
 
     const spriteCache = new Map<string, HTMLCanvasElement>();
@@ -115,10 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function ensureSpriteSheet(type: string) {
         if (spriteCache.has(type)) return;
-        const path = SPRITE_SHEETS[type];
-        if (!path || !archive || !pkdFile) return;
+        const meta = SPRITE_SHEETS[type];
+        if (!meta || !archive || !pkdFile) return;
 
-        const bytes = await archive.extractFile(pkdFile, path);
+        const bytes = await archive.extractFile(pkdFile, meta.path);
         if (!bytes) return;
 
         try {
@@ -141,12 +153,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function drawSprite(ctx: CanvasRenderingContext2D, inst: SpriteInstance) {
         const sheet = spriteCache.get(inst.type);
-        if (!sheet) return;
+        const meta = SPRITE_SHEETS[inst.type];
+        if (!sheet || !meta) return;
 
-        // Sprites are typically 128x128 
-        const spriteSize = 128;
-        const cols = Math.floor(sheet.width / spriteSize);
-        const rows = Math.floor(sheet.height / spriteSize);
+        const spriteWidth = meta.w;
+        const spriteHeight = meta.h;
+        const cols = Math.floor(sheet.width / spriteWidth);
+        const rows = Math.floor(sheet.height / spriteHeight);
         const totalFrames = cols * rows;
         
         let ani = inst.ani;
@@ -156,43 +169,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Apply modulo wrapping for out-of-bounds indices (like ani=9 for an 8-frame rock sheet)
-        ani = Math.max(0, ani) % totalFrames;
+        ani = Math.max(0, ani) % Math.max(1, totalFrames);
 
-        const sx = (ani % cols) * spriteSize;
+        const sx = (ani % cols) * spriteWidth;
         
         // Because we flipped the entire sprite sheet vertically to fix the upside-down rendering,
         // the original "Row 0" is now at the bottom of the canvas. We must invert the row index!
         const row = Math.floor(ani / cols);
         const invertedRow = (rows - 1) - row;
         
-        const sy = invertedRow * spriteSize;
+        const sy = invertedRow * spriteHeight;
+
+        // Apply scale (default 1)
+        const scale = inst.scale ?? 1.0;
+        const drawWidth = spriteWidth * scale;
+        const drawHeight = spriteHeight * scale;
 
         // The engine appears to use Center anchoring (0.5, 0.5) by default
-        const dx = inst.x - (spriteSize / 2);
-        const dy = inst.y - (spriteSize / 2);
+        const dx = inst.x - (drawWidth / 2);
+        const dy = inst.y - (drawHeight / 2);
 
         if (inst.r >= 0.99 && inst.g >= 0.99 && inst.b >= 0.99) {
             // Fast path: no tinting needed
-            ctx.drawImage(sheet, sx, sy, spriteSize, spriteSize, dx, dy, spriteSize, spriteSize);
+            ctx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
         } else {
             // Tinting path
-            scratchCtx.clearRect(0, 0, spriteSize, spriteSize);
+            scratchCanvas.width = spriteWidth;
+            scratchCanvas.height = spriteHeight;
+            scratchCtx.clearRect(0, 0, spriteWidth, spriteHeight);
             
             // 1. Draw the raw sprite
             scratchCtx.globalCompositeOperation = 'source-over';
-            scratchCtx.drawImage(sheet, sx, sy, spriteSize, spriteSize, 0, 0, spriteSize, spriteSize);
+            scratchCtx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, 0, 0, spriteWidth, spriteHeight);
             
             // 2. Apply multiply tint to everything (this turns transparent areas colored, which is bad)
             scratchCtx.globalCompositeOperation = 'multiply';
             scratchCtx.fillStyle = `rgb(${Math.floor(inst.r * 255)}, ${Math.floor(inst.g * 255)}, ${Math.floor(inst.b * 255)})`;
-            scratchCtx.fillRect(0, 0, spriteSize, spriteSize);
+            scratchCtx.fillRect(0, 0, spriteWidth, spriteHeight);
             
             // 3. Mask out the transparent areas by using destination-in against the original sprite shape
             scratchCtx.globalCompositeOperation = 'destination-in';
-            scratchCtx.drawImage(sheet, sx, sy, spriteSize, spriteSize, 0, 0, spriteSize, spriteSize);
+            scratchCtx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, 0, 0, spriteWidth, spriteHeight);
 
             // 4. Draw the tinted result to the main canvas
-            ctx.drawImage(scratchCanvas, 0, 0, spriteSize, spriteSize, dx, dy, spriteSize, spriteSize);
+            ctx.drawImage(scratchCanvas, 0, 0, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
         }
     }
 
@@ -209,7 +229,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (showTreesCheck.checked) allInstances.push(...treeInstances);
         if (showRocksCheck.checked) allInstances.push(...rockInstances);
         
-        allInstances.sort((a, b) => a.y - b.y);
+        allInstances.sort((a, b) => {
+            const zA = a.z ?? a.y;
+            const zB = b.z ?? b.y;
+            return zA - zB;
+        });
 
         for (const inst of allInstances) {
             drawSprite(ctx, inst);
@@ -231,8 +255,8 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMsg.textContent = `Decoding DDS...`;
             currentImageData = DDSDecoder.decodeToImageData(fileBytes, true); // true = flip background vertically
             
-            // Extract trees
-            statusMsg.textContent = `Extracting Stage ${stageId} trees...`;
+            // Extract trees and home position
+            statusMsg.textContent = `Extracting Stage ${stageId} trees and home...`;
             const forestPath = `data-common/stage_data/umd/stage${stageId}/forestpos.txt`;
             const forestBytes = await archive.extractFile(pkdFile, forestPath);
             treeInstances = [];
@@ -255,6 +279,45 @@ document.addEventListener('DOMContentLoaded', () => {
                         g: parseFloat(match[6]),
                         b: parseFloat(match[7])
                     });
+                }
+                
+                // e.g. home.pos = vector(1728.000000,136.000000);
+                const homeRegex = /home\.pos\s*=\s*vector\(([-0-9.]+),\s*([-0-9.]+)\);/g;
+                const homeMatch = homeRegex.exec(text);
+                if (homeMatch) {
+                    const hx = parseFloat(homeMatch[1]);
+                    const hy = parseFloat(homeMatch[2]);
+                    
+                    typesToLoad.add("home_grass");
+                    typesToLoad.add("home");
+                    typesToLoad.add("gem_sign");
+                    typesToLoad.add("research_sign");
+                    
+                    // If the stage has winter trees, use frame 1 (winter variant) for the home and grass
+                    const isWinter = typesToLoad.has("tree_winter");
+                    const homeAni = isWinter ? 1 : 0;
+                    
+                    // Add home_grass (drawn first/lowest Z)
+                    const grassX = hx; // The grass is visually centered on the home
+                    const grassY = hy + 50; // The ground is visually below the home
+                    treeInstances.push({ x: grassX, y: grassY, z: hy + 25, type: "home_grass", ani: homeAni, r: 1, g: 1, b: 1 });
+                    
+                    // Add home
+                    treeInstances.push({ x: hx, y: hy, z: hy + 50, type: "home", ani: homeAni, r: 1, g: 1, b: 1 });
+                    
+                    // Add gem_sign (home.pos + (-120, 0))
+                    // When it was drawn at 'hy', it was vertically aligned perfectly.
+                    // The game engine's Z parameter (+50) ensures it sorts on top of the hut!
+                    const gemX = hx - 120;
+                    const gemY = hy + 50; 
+                    treeInstances.push({ x: gemX, y: gemY, z: hy + 75, type: "gem_sign", ani: 0, r: 1, g: 1, b: 1 });
+
+                    // Add research_sign (home_pos + (-122, -50))
+                    // This visually sits 50 pixels above the gem_sign. 
+                    // Its Z parameter (+100) ensures it sorts on top of everything!
+                    const resX = hx - 122;
+                    const resY = hy; 
+                    treeInstances.push({ x: resX, y: resY, z: hy + 100, type: "research_sign", ani: 0, r: 1, g: 1, b: 1 });
                 }
             }
 
