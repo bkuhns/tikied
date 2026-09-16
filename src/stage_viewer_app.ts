@@ -14,6 +14,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showTreesCheck = document.getElementById('showTreesCheck') as HTMLInputElement;
     const showRocksCheck = document.getElementById('showRocksCheck') as HTMLInputElement;
+    const maximizeBtn = document.getElementById('maximizeBtn') as HTMLButtonElement;
+
+    maximizeBtn.addEventListener('click', () => {
+        viewerSection.classList.toggle('maximized');
+        if (viewerSection.classList.contains('maximized')) {
+            maximizeBtn.textContent = 'Minimize View';
+        } else {
+            maximizeBtn.textContent = 'Maximize View';
+        }
+    });
 
     let archive: PJMArchive | null = null;
     let pkdFile: File | null = null;
