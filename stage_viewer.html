@@ -42,30 +42,42 @@
             </div>
 
             <div class="form-group">
+                <label>Show features:</label>
                 <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-right: 15px;">
                     <input type="checkbox" id="showTreesCheck" checked>
-                    Show Trees
+                    Trees
                 </label>
                 <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-right: 15px;">
                     <input type="checkbox" id="showRocksCheck" checked>
-                    Show Rocks
+                    Rocks
                 </label>
                 <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-right: 15px;">
                     <input type="checkbox" id="showObjectsCheck" checked>
-                    Show Objects
+                    Objects
                 </label>
                 <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-right: 15px;">
                     <input type="checkbox" id="showBridgesCheck" checked>
-                    Show Bridges
+                    Bridges
+                </label>
+                <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-right: 15px;">
+                    <input type="checkbox" id="showRoutesCheck" checked>
+                    Routes
                 </label>
                 <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; margin-right: 15px;">
                     <input type="checkbox" id="showWaterCheck" checked>
-                    Show Water
+                    Water
                 </label>
                 <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer;">
                     <input type="checkbox" id="showHudBarCheck" checked>
-                    Show HUD Bar
+                    HUD Bar
                 </label>
+            </div>
+            
+            <div class="form-group">
+                <label>Stage routes:</label>
+                <div id="routeTogglesContainer" style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 10px;">
+                    <!-- Dynamically populated route toggles will go here -->
+                </div>
             </div>
             
             <div class="canvas-container">

@@ -2,6 +2,7 @@ import { PJMArchive } from './pjm_archive.js';
 import { DDSDecoder } from './dds_decoder.js';
 import { ISLANDS, IslandInfo, StageInfo } from './stages_data.js';
 import { WebGLWaterRenderer } from './webgl_water.js';
+import { RoutesRenderer } from './routes_renderer.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const pkiInput = document.getElementById('pkiInput') as HTMLInputElement;
@@ -17,9 +18,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const showRocksCheck = document.getElementById('showRocksCheck') as HTMLInputElement;
     const showObjectsCheck = document.getElementById('showObjectsCheck') as HTMLInputElement;
     const showBridgesCheck = document.getElementById('showBridgesCheck') as HTMLInputElement;
+    const showRoutesCheck = document.getElementById('showRoutesCheck') as HTMLInputElement;
     const showWaterCheck = document.getElementById('showWaterCheck') as HTMLInputElement;
     const showHudBarCheck = document.getElementById('showHudBarCheck') as HTMLInputElement;
     const maximizeBtn = document.getElementById('maximizeBtn') as HTMLButtonElement;
+    const routeTogglesContainer = document.getElementById('routeTogglesContainer') as HTMLDivElement;
 
     const gridOverrides: Record<string, {cols: number, rows: number}> = {
         "tree_beach": { cols: 2, rows: 4 }
@@ -92,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const spriteCache = new Map<string, HTMLCanvasElement>();
     const webglWaterRenderer = new WebGLWaterRenderer();
+    const routesRenderer = new RoutesRenderer();
 
     const BRIDGE_DATA: Record<string, SpriteInstance[]> = {
         "12": [ { type: "bridge_s12", x: 929, y: 852, z: 1, ani: 0, r: 1, g: 1, b: 1 } ],
@@ -145,6 +149,17 @@ document.addEventListener('DOMContentLoaded', () => {
     showRocksCheck.addEventListener('change', render);
     showObjectsCheck.addEventListener('change', render);
     showBridgesCheck.addEventListener('change', render);
+    
+    showRoutesCheck.addEventListener('change', () => {
+        if (showRoutesCheck.checked) {
+            const routes = routesRenderer.getRoutes();
+            routes.forEach((r) => r.visible = true);
+            const checkboxes = routeTogglesContainer.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach((cb) => (cb as HTMLInputElement).checked = true);
+        }
+        render();
+    });
+
     showWaterCheck.addEventListener('change', render);
     showHudBarCheck.addEventListener('change', render);
 
@@ -354,6 +369,11 @@ document.addEventListener('DOMContentLoaded', () => {
             drawSprite(ctx, inst);
         }
 
+        // Draw routes on top of the stage art but behind the HUD bar
+        if (showRoutesCheck.checked) {
+            routesRenderer.draw(ctx);
+        }
+
         if (showHudBarCheck.checked && spriteCache.has('hud_bar')) {
             const barCanvas = spriteCache.get('hud_bar')!;
             // The HUD bar is 2048x128. Draw the center W pixels of it, at 1:1 scale (no vertical stretch).
@@ -388,6 +408,41 @@ document.addEventListener('DOMContentLoaded', () => {
             if (waveBytes) {
                 const waveImgData = DDSDecoder.decodeToImageData(waveBytes, true);
                 webglWaterRenderer.setWaveTexture(waveImgData);
+            }
+
+            // Extract routes
+            statusMsg.textContent = `Extracting Stage ${stageId} routes...`;
+            const roadPath = `data-common/stage_data/umd/stage${stageId}/road.txt`;
+            const roadBytes = await archive.extractFile(pkdFile, roadPath);
+            routeTogglesContainer.innerHTML = '';
+            routesRenderer.clear();
+            if (roadBytes) {
+                const text = new TextDecoder().decode(roadBytes);
+                routesRenderer.parseRoadTxt(text);
+                
+                const routes = routesRenderer.getRoutes();
+                routes.forEach((route, idx) => {
+                    const label = document.createElement('label');
+                    label.style.display = 'inline-flex';
+                    label.style.alignItems = 'center';
+                    label.style.gap = '8px';
+                    label.style.cursor = 'pointer';
+                    label.style.color = route.color;
+                    label.style.fontWeight = 'bold';
+                    label.style.textShadow = '1px 1px 2px black';
+                    
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.checked = true;
+                    cb.addEventListener('change', () => {
+                        route.visible = cb.checked;
+                        render();
+                    });
+                    
+                    label.appendChild(cb);
+                    label.appendChild(document.createTextNode(`Route ${idx + 1}`));
+                    routeTogglesContainer.appendChild(label);
+                });
             }
 
             // Extract trees and home position
