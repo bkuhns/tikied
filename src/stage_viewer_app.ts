@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentImageData: ImageData | null = null;
     let treeInstances: SpriteInstance[] = [];
     let rockInstances: SpriteInstance[] = [];
+    let bridgeInstances: SpriteInstance[] = [];
 
     interface SpriteMeta {
         path: string;
@@ -71,10 +72,32 @@ document.addEventListener('DOMContentLoaded', () => {
         "home_grass": { path: "data-common/textures/bgdata/objects/House1_ground.dds", w: 512, h: 128 },
         "gem_sign": { path: "data-common/textures/ingameui/main/gemsign.dds", w: 128, h: 128 },
         "research_sign": { path: "data-common/textures/ingameui/resource/researchsign.dds", w: 128, h: 128 },
-        "shadow": { path: "data-common/textures/bgdata/objects/shadow.dds", w: 128, h: 64 }
+        "shadow": { path: "data-common/textures/bgdata/objects/shadow.dds", w: 128, h: 64 },
+        // Bridges
+        "bridge_s12": { path: "data-common/textures/bgdata/objects/bridge_s12.dds", w: 512, h: 256 },
+        "bridge_s16": { path: "data-common/textures/bgdata/objects/bridge_s16.dds", w: 256, h: 256 },
+        "bridge_s48": { path: "data-common/textures/bgdata/objects/swampBridge.dds", w: 256, h: 256 },
+        "bridge_s52a": { path: "data-common/textures/bgdata/objects/stage52BridgeA.dds", w: 256, h: 256 },
+        "bridge_s52b": { path: "data-common/textures/bgdata/objects/stage52BridgeB.dds", w: 256, h: 256 },
+        "stage79Bridge": { path: "data-common/textures/bgdata/objects/stage79Bridge.dds", w: 1024, h: 128 }
     };
 
     const spriteCache = new Map<string, HTMLCanvasElement>();
+
+    const BRIDGE_DATA: Record<string, SpriteInstance[]> = {
+        "12": [ { type: "bridge_s12", x: 929, y: 852, z: 1, ani: 0, r: 1, g: 1, b: 1 } ],
+        "16": [ { type: "bridge_s16", x: 920, y: 640, z: 1, ani: 0, r: 1, g: 1, b: 1 } ],
+        "48": [
+            { type: "bridge_s48", x: 164 - 160, y: 212 - 192, z: 1, ani: 0, r: 1, g: 1, b: 1 },
+            { type: "bridge_s48", x: 164, y: 212, z: 1, ani: 0, r: 1, g: 1, b: 1 }
+        ],
+        "52": [
+            { type: "bridge_s52a", x: 648, y: 544, z: 0, ani: 0, r: 1, g: 1, b: 1 },
+            { type: "bridge_s52b", x: 1196, y: 628, z: 0, ani: 0, r: 1, g: 1, b: 1 }
+        ],
+        "79": [ { type: "stage79Bridge", x: 960 + 40, y: 512 + 412, z: 0, ani: 0, r: 1, g: 1, b: 1 } ],
+        "91": [ { type: "stage79Bridge", x: 960 + 40, y: 512 + 412, z: 0, ani: 0, r: 1, g: 1, b: 1 } ]
+    };
 
     const NEGATIVE_ROCK_MAPPING: Record<number, number> = {
         0: 0,
@@ -272,6 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Sort instances by Y coordinate for correct depth rendering (painter's algorithm)
         const allInstances: SpriteInstance[] = [];
+        allInstances.push(...bridgeInstances); // Bridges are background elements, so push them first
         if (showTreesCheck.checked) allInstances.push(...treeInstances);
         if (showRocksCheck.checked) allInstances.push(...rockInstances);
         
@@ -306,7 +330,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const forestPath = `data-common/stage_data/umd/stage${stageId}/forestpos.txt`;
             const forestBytes = await archive.extractFile(pkdFile, forestPath);
             treeInstances = [];
+            bridgeInstances = [];
             const typesToLoad = new Set<string>();
+            
+            // Populate bridges
+            if (BRIDGE_DATA[stageId]) {
+                for (const bridge of BRIDGE_DATA[stageId]) {
+                    typesToLoad.add(bridge.type);
+                    bridgeInstances.push({ ...bridge }); // Clone so we don't mutate const
+                }
+            }
             
             if (forestBytes) {
                 const text = new TextDecoder().decode(forestBytes);
@@ -431,6 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentImageData = null;
             treeInstances = [];
             rockInstances = [];
+            bridgeInstances = [];
             const ctx = stageCanvas.getContext('2d');
             ctx?.clearRect(0, 0, stageCanvas.width, stageCanvas.height);
         }
