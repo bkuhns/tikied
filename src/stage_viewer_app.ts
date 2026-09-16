@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         "tree_bare": { path: "data-common/textures/bgdata/objects/TreeSet_bare1.dds", w: 128, h: 128 },
         "tree_beach": { path: "data-common/textures/bgdata/objects/TreeSet_beach.dds", w: 128, h: 128 },
         "rock_1": { path: "data-common/textures/bgdata/objects/rockSet1.dds", w: 128, h: 128 },
+        "rock_1_winter": { path: "data-common/textures/bgdata/objects/snowrocks.dds", w: 128, h: 128 },
         "log_obj": { path: "data-common/textures/bgdata/objects/Log.dds", w: 128, h: 128 },
         "stumps": { path: "data-common/textures/bgdata/objects/Stumps_2x2.dds", w: 128, h: 128 },
         "home": { path: "data-common/textures/bgdata/objects/House1.dds", w: 256, h: 128 },
@@ -366,7 +367,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const regex = /MakeStdObj\(\s*vector\(([-0-9.]+),\s*([-0-9.]+)\),\s*"([^"]+)",\s*([-0-9]+),\s*vector\(([-0-9.]+),\s*([-0-9.]+),\s*([-0-9.]+)\)/g;
                 let match;
                 while ((match = regex.exec(text)) !== null) {
-                    const type = match[3];
+                    let type = match[3];
+                    if (type === "rock_1" && typesToLoad.has("tree_winter")) {
+                        type = "rock_1_winter";
+                    }
+                    
                     typesToLoad.add(type);
                     rockInstances.push({
                         x: parseFloat(match[1]),
