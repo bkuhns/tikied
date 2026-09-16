@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
         y: number;
         type: string;
         ani: number;
+        r: number;
+        g: number;
+        b: number;
     }
 
     let currentImageData: ImageData | null = null;
@@ -130,13 +133,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Pre-allocate a scratch canvas for tinting to avoid creating one per sprite
+    const scratchCanvas = document.createElement('canvas');
+    scratchCanvas.width = 128;
+    scratchCanvas.height = 128;
+    const scratchCtx = scratchCanvas.getContext('2d')!;
+
     function drawSprite(ctx: CanvasRenderingContext2D, inst: SpriteInstance) {
         const sheet = spriteCache.get(inst.type);
         if (!sheet) return;
 
-        // Sprites are typically 128x128 in a 4x4 grid (512x512 texture)
+        // Sprites are typically 128x128 
         const spriteSize = 128;
         const cols = Math.floor(sheet.width / spriteSize);
+        const rows = Math.floor(sheet.height / spriteSize);
+        const totalFrames = cols * rows;
         
         let ani = inst.ani;
         // Apply hardcoded negative mapping for rocks
@@ -144,21 +155,45 @@ document.addEventListener('DOMContentLoaded', () => {
             ani = NEGATIVE_ROCK_MAPPING[ani] ?? 0;
         }
 
+        // Apply modulo wrapping for out-of-bounds indices (like ani=9 for an 8-frame rock sheet)
+        ani = Math.max(0, ani) % totalFrames;
+
         const sx = (ani % cols) * spriteSize;
         
         // Because we flipped the entire sprite sheet vertically to fix the upside-down rendering,
         // the original "Row 0" is now at the bottom of the canvas. We must invert the row index!
-        const rows = Math.floor(sheet.height / spriteSize);
         const row = Math.floor(ani / cols);
         const invertedRow = (rows - 1) - row;
         
         const sy = invertedRow * spriteSize;
 
-        // Bottom-center anchor
+        // The engine appears to use Center anchoring (0.5, 0.5) by default
         const dx = inst.x - (spriteSize / 2);
-        const dy = inst.y - spriteSize;
+        const dy = inst.y - (spriteSize / 2);
 
-        ctx.drawImage(sheet, sx, sy, spriteSize, spriteSize, dx, dy, spriteSize, spriteSize);
+        if (inst.r >= 0.99 && inst.g >= 0.99 && inst.b >= 0.99) {
+            // Fast path: no tinting needed
+            ctx.drawImage(sheet, sx, sy, spriteSize, spriteSize, dx, dy, spriteSize, spriteSize);
+        } else {
+            // Tinting path
+            scratchCtx.clearRect(0, 0, spriteSize, spriteSize);
+            
+            // 1. Draw the raw sprite
+            scratchCtx.globalCompositeOperation = 'source-over';
+            scratchCtx.drawImage(sheet, sx, sy, spriteSize, spriteSize, 0, 0, spriteSize, spriteSize);
+            
+            // 2. Apply multiply tint to everything (this turns transparent areas colored, which is bad)
+            scratchCtx.globalCompositeOperation = 'multiply';
+            scratchCtx.fillStyle = `rgb(${Math.floor(inst.r * 255)}, ${Math.floor(inst.g * 255)}, ${Math.floor(inst.b * 255)})`;
+            scratchCtx.fillRect(0, 0, spriteSize, spriteSize);
+            
+            // 3. Mask out the transparent areas by using destination-in against the original sprite shape
+            scratchCtx.globalCompositeOperation = 'destination-in';
+            scratchCtx.drawImage(sheet, sx, sy, spriteSize, spriteSize, 0, 0, spriteSize, spriteSize);
+
+            // 4. Draw the tinted result to the main canvas
+            ctx.drawImage(scratchCanvas, 0, 0, spriteSize, spriteSize, dx, dy, spriteSize, spriteSize);
+        }
     }
 
     function render() {
@@ -206,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (forestBytes) {
                 const text = new TextDecoder().decode(forestBytes);
                 // e.g. MakeForest( vector(968,24),"tree_spring",0,vector(1.000000,1.000000,1.000000),0.000000);
-                const regex = /MakeForest\(\s*vector\(([-0-9.]+),\s*([-0-9.]+)\),\s*"([^"]+)",\s*([-0-9]+)/g;
+                const regex = /MakeForest\(\s*vector\(([-0-9.]+),\s*([-0-9.]+)\),\s*"([^"]+)",\s*([-0-9]+),\s*vector\(([-0-9.]+),\s*([-0-9.]+),\s*([-0-9.]+)\)/g;
                 let match;
                 while ((match = regex.exec(text)) !== null) {
                     const type = match[3];
@@ -215,7 +250,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         x: parseFloat(match[1]),
                         y: parseFloat(match[2]),
                         type: type,
-                        ani: parseInt(match[4], 10)
+                        ani: parseInt(match[4], 10),
+                        r: parseFloat(match[5]),
+                        g: parseFloat(match[6]),
+                        b: parseFloat(match[7])
                     });
                 }
             }
@@ -228,8 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (rockBytes) {
                 const text = new TextDecoder().decode(rockBytes);
-                // e.g. MakeStdObj( vector(1728,8),"rock_1",-4,...);
-                const regex = /MakeStdObj\(\s*vector\(([-0-9.]+),\s*([-0-9.]+)\),\s*"([^"]+)",\s*([-0-9]+)/g;
+                // e.g. MakeStdObj( vector(1728,8),"rock_1",-4,vector(1,1,1),0);
+                const regex = /MakeStdObj\(\s*vector\(([-0-9.]+),\s*([-0-9.]+)\),\s*"([^"]+)",\s*([-0-9]+),\s*vector\(([-0-9.]+),\s*([-0-9.]+),\s*([-0-9.]+)\)/g;
                 let match;
                 while ((match = regex.exec(text)) !== null) {
                     const type = match[3];
@@ -238,7 +276,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         x: parseFloat(match[1]),
                         y: parseFloat(match[2]),
                         type: type,
-                        ani: parseInt(match[4], 10)
+                        ani: parseInt(match[4], 10),
+                        r: parseFloat(match[5]),
+                        g: parseFloat(match[6]),
+                        b: parseFloat(match[7])
                     });
                 }
             }
