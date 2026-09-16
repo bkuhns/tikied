@@ -9,6 +9,7 @@ export class DDSDecoder {
         const flags = dataView.getUint32(80, true);
         
         const isRGB = (flags & 0x40) !== 0;
+        const hasAlphaPixels = (flags & 0x1) !== 0;
         const isFourCC = (flags & 0x4) !== 0;
         const fourCC = isFourCC ? new TextDecoder().decode(ddsData.slice(84, 88)) : "";
 
@@ -19,7 +20,7 @@ export class DDSDecoder {
         const imageData = ctx.createImageData(width, height);
         
         if (isRGB && dataView.getUint32(88, true) === 32) {
-            this.decodeUncompressed(ddsData, imageData, width, height, 128, flipVertical);
+            this.decodeUncompressed(ddsData, imageData, width, height, 128, flipVertical, hasAlphaPixels);
         } else if (isFourCC && fourCC === "DXT5") {
             this.decodeDXT5(ddsData, imageData, width, height, 128, flipVertical);
         } else {
@@ -28,7 +29,7 @@ export class DDSDecoder {
         return imageData;
     }
 
-    private static decodeUncompressed(ddsData: Uint8Array, imageData: ImageData, width: number, height: number, offset: number, flipVertical: boolean) {
+    private static decodeUncompressed(ddsData: Uint8Array, imageData: ImageData, width: number, height: number, offset: number, flipVertical: boolean, hasAlpha: boolean) {
         const pixels = imageData.data;
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width; x++) {
@@ -42,7 +43,7 @@ export class DDSDecoder {
                 pixels[destIdx] = r;
                 pixels[destIdx + 1] = g;
                 pixels[destIdx + 2] = b;
-                pixels[destIdx + 3] = 255; 
+                pixels[destIdx + 3] = hasAlpha ? a : 255; 
             }
         }
     }

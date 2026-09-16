@@ -1,6 +1,7 @@
 import { PJMArchive } from './pjm_archive.js';
 import { DDSDecoder } from './dds_decoder.js';
 import { ISLANDS, IslandInfo, StageInfo } from './stages_data.js';
+import { WebGLWaterRenderer } from './webgl_water.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const pkiInput = document.getElementById('pkiInput') as HTMLInputElement;
@@ -79,10 +80,12 @@ document.addEventListener('DOMContentLoaded', () => {
         "bridge_s48": { path: "data-common/textures/bgdata/objects/swampBridge.dds", w: 256, h: 256 },
         "bridge_s52a": { path: "data-common/textures/bgdata/objects/stage52BridgeA.dds", w: 256, h: 256 },
         "bridge_s52b": { path: "data-common/textures/bgdata/objects/stage52BridgeB.dds", w: 256, h: 256 },
-        "stage79Bridge": { path: "data-common/textures/bgdata/objects/stage79Bridge.dds", w: 1024, h: 128 }
+        "stage79Bridge": { path: "data-common/textures/bgdata/objects/stage79Bridge.dds", w: 1024, h: 128 },
+        "new_wave": { path: "data-common/textures/effects/NewWave.dds", w: 256, h: 256 }
     };
 
     const spriteCache = new Map<string, HTMLCanvasElement>();
+    const webglWaterRenderer = new WebGLWaterRenderer();
 
     const BRIDGE_DATA: Record<string, SpriteInstance[]> = {
         "12": [ { type: "bridge_s12", x: 929, y: 852, z: 1, ani: 0, r: 1, g: 1, b: 1 } ],
@@ -145,6 +148,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             archive = await PJMArchive.parse(pkiFile);
             
+            // Extract water shader and initialize
+            statusMsg.textContent = "Extracting shader...";
+            const shaderBytes = await archive.extractFile(pkdFile, "shaders/ps_2dwater.hlsl");
+            if (shaderBytes) {
+                const hlslSource = new TextDecoder().decode(shaderBytes);
+                webglWaterRenderer.initShaders(hlslSource);
+            }
+
             viewerSection.classList.remove('hidden');
             statusMsg.textContent = "Archives loaded! Select a stage to view.";
             
@@ -285,13 +296,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    let renderRafId: number | null = null;
+    
     function render() {
+        if (renderRafId) {
+            cancelAnimationFrame(renderRafId);
+        }
+
         if (!currentImageData) return;
         
+        // Update shader and draw to webgl canvas
+        webglWaterRenderer.updateAndDraw();
+
         const ctx = stageCanvas.getContext('2d')!;
         stageCanvas.width = currentImageData.width;
         stageCanvas.height = currentImageData.height;
-        ctx.putImageData(currentImageData, 0, 0);
+        
+        // Draw WebGL background to 2D canvas
+        ctx.drawImage(webglWaterRenderer.getCanvas(), 0, 0);
 
         // Sort instances by Y coordinate for correct depth rendering (painter's algorithm)
         const allInstances: SpriteInstance[] = [];
@@ -299,15 +321,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (showTreesCheck.checked) allInstances.push(...treeInstances);
         if (showRocksCheck.checked) allInstances.push(...rockInstances);
         
-        allInstances.sort((a, b) => {
-            const zA = a.z ?? a.y;
-            const zB = b.z ?? b.y;
-            return zA - zB;
-        });
+        allInstances.sort((a, b) => (a.z ?? a.y) - (b.z ?? b.y));
 
         for (const inst of allInstances) {
             drawSprite(ctx, inst);
         }
+        
+        renderRafId = requestAnimationFrame(render);
     }
 
     async function loadStage(stageId: string) {
@@ -325,6 +345,14 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMsg.textContent = `Decoding DDS...`;
             currentImageData = DDSDecoder.decodeToImageData(fileBytes, true); // true = flip background vertically
             
+            // Setup WebGL Background
+            webglWaterRenderer.setStageTexture(currentImageData);
+            const waveBytes = await archive.extractFile(pkdFile, "data-common/textures/effects/NewWave.dds");
+            if (waveBytes) {
+                const waveImgData = DDSDecoder.decodeToImageData(waveBytes, true);
+                webglWaterRenderer.setWaveTexture(waveImgData);
+            }
+
             // Extract trees and home position
             statusMsg.textContent = `Extracting Stage ${stageId} trees and home...`;
             const forestPath = `data-common/stage_data/umd/stage${stageId}/forestpos.txt`;
