@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showTreesCheck = document.getElementById('showTreesCheck') as HTMLInputElement;
     const showRocksCheck = document.getElementById('showRocksCheck') as HTMLInputElement;
+    const showWaterCheck = document.getElementById('showWaterCheck') as HTMLInputElement;
+    const showHudBarCheck = document.getElementById('showHudBarCheck') as HTMLInputElement;
     const maximizeBtn = document.getElementById('maximizeBtn') as HTMLButtonElement;
 
     const gridOverrides: Record<string, {cols: number, rows: number}> = {
@@ -81,7 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
         "bridge_s52a": { path: "data-common/textures/bgdata/objects/stage52BridgeA.dds", w: 256, h: 256 },
         "bridge_s52b": { path: "data-common/textures/bgdata/objects/stage52BridgeB.dds", w: 256, h: 256 },
         "stage79Bridge": { path: "data-common/textures/bgdata/objects/stage79Bridge.dds", w: 1024, h: 128 },
-        "new_wave": { path: "data-common/textures/effects/NewWave.dds", w: 256, h: 256 }
+        "new_wave": { path: "data-common/textures/effects/NewWave.dds", w: 256, h: 256 },
+        "hud_bar": { path: "data-common/textures/frontend/shared/pixeljunkbar.dds", w: 2048, h: 128 }
     };
 
     const spriteCache = new Map<string, HTMLCanvasElement>();
@@ -137,6 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showTreesCheck.addEventListener('change', render);
     showRocksCheck.addEventListener('change', render);
+    showWaterCheck.addEventListener('change', render);
+    showHudBarCheck.addEventListener('change', render);
 
     loadBtn.addEventListener('click', async () => {
         try {
@@ -305,15 +310,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!currentImageData) return;
         
-        // Update shader and draw to webgl canvas
-        webglWaterRenderer.updateAndDraw();
+        const W = currentImageData.width;
+        let H = currentImageData.height;
+        if (showHudBarCheck.checked) {
+            H = Math.round(W * (9 / 16));
+        }
 
         const ctx = stageCanvas.getContext('2d')!;
-        stageCanvas.width = currentImageData.width;
-        stageCanvas.height = currentImageData.height;
+        stageCanvas.width = W;
+        stageCanvas.height = H;
         
-        // Draw WebGL background to 2D canvas
-        ctx.drawImage(webglWaterRenderer.getCanvas(), 0, 0);
+        if (showWaterCheck.checked) {
+            // Update shader and draw to webgl canvas
+            webglWaterRenderer.updateAndDraw();
+            // Draw WebGL background to 2D canvas
+            ctx.drawImage(webglWaterRenderer.getCanvas(), 0, 0);
+        } else {
+            // Draw raw background
+            ctx.putImageData(currentImageData, 0, 0);
+        }
+        
+        // Fill any empty space below the background texture with black
+        if (H > currentImageData.height) {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, currentImageData.height, W, H - currentImageData.height);
+        }
 
         // Sort instances by Y coordinate for correct depth rendering (painter's algorithm)
         const allInstances: SpriteInstance[] = [];
@@ -325,6 +346,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (const inst of allInstances) {
             drawSprite(ctx, inst);
+        }
+
+        if (showHudBarCheck.checked && spriteCache.has('hud_bar')) {
+            const barCanvas = spriteCache.get('hud_bar')!;
+            // The HUD bar is 2048x128. Draw the center W pixels of it, at 1:1 scale (no vertical stretch).
+            // If W > 2048, center the 2048 bar in the W-wide space.
+            const sw = Math.min(W, 2048);
+            const sx = (2048 - sw) / 2;
+            const dx = (W - sw) / 2;
+            ctx.drawImage(barCanvas, sx, 0, sw, 128, dx, H - 113, sw, 128);
         }
         
         renderRafId = requestAnimationFrame(render);
@@ -360,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
             treeInstances = [];
             bridgeInstances = [];
             const typesToLoad = new Set<string>();
+            typesToLoad.add('hud_bar');
             
             // Populate bridges
             if (BRIDGE_DATA[stageId]) {
