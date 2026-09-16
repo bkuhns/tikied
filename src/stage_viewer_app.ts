@@ -18,9 +18,42 @@ document.addEventListener('DOMContentLoaded', () => {
     let archive: PJMArchive | null = null;
     let pkdFile: File | null = null;
     
+    interface SpriteInstance {
+        x: number;
+        y: number;
+        type: string;
+        ani: number;
+    }
+
     let currentImageData: ImageData | null = null;
-    let treePositions: {x: number, y: number}[] = [];
-    let rockPositions: {x: number, y: number}[] = [];
+    let treeInstances: SpriteInstance[] = [];
+    let rockInstances: SpriteInstance[] = [];
+
+    const SPRITE_SHEETS: Record<string, string> = {
+        "tree_spring": "data-common/textures/bgdata/objects/TreeSet_spring.dds",
+        "tree_summer": "data-common/textures/bgdata/objects/TreeSet_summer1.dds",
+        "tree_autumn": "data-common/textures/bgdata/objects/TreeSet_autumn1.dds",
+        "tree_winter": "data-common/textures/bgdata/objects/TreeSet_winter1.dds",
+        "tree_swamp": "data-common/textures/bgdata/objects/TreeSet_swamp1.dds",
+        "tree_bare": "data-common/textures/bgdata/objects/TreeSet_bare1.dds",
+        "tree_beach": "data-common/textures/bgdata/objects/TreeSet_beach.dds",
+        "rock_1": "data-common/textures/bgdata/objects/rockSet1.dds",
+        "log_obj": "data-common/textures/bgdata/objects/Log.dds",
+        "stumps": "data-common/textures/bgdata/objects/Stumps_2x2.dds"
+    };
+
+    const spriteCache = new Map<string, HTMLCanvasElement>();
+
+    const NEGATIVE_ROCK_MAPPING: Record<number, number> = {
+        0: 0,
+        "-1": 1,
+        "-2": 6,
+        "-3": 7,
+        "-4": 8,
+        "-5": 2,
+        "-6": 3,
+        "-7": 8
+    };
 
     // Populate dropdown with grouped islands
     for (const island of ISLANDS) {
@@ -77,6 +110,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    async function ensureSpriteSheet(type: string) {
+        if (spriteCache.has(type)) return;
+        const path = SPRITE_SHEETS[type];
+        if (!path || !archive || !pkdFile) return;
+
+        const bytes = await archive.extractFile(pkdFile, path);
+        if (!bytes) return;
+
+        try {
+            const imgData = DDSDecoder.decodeToImageData(bytes, true); // true = flip sprite sheet vertically
+            const canvas = document.createElement('canvas');
+            canvas.width = imgData.width;
+            canvas.height = imgData.height;
+            canvas.getContext('2d')!.putImageData(imgData, 0, 0);
+            spriteCache.set(type, canvas);
+        } catch (e) {
+            console.warn(`Failed to decode sprite sheet ${type}:`, e);
+        }
+    }
+
+    function drawSprite(ctx: CanvasRenderingContext2D, inst: SpriteInstance) {
+        const sheet = spriteCache.get(inst.type);
+        if (!sheet) return;
+
+        // Sprites are typically 128x128 in a 4x4 grid (512x512 texture)
+        const spriteSize = 128;
+        const cols = Math.floor(sheet.width / spriteSize);
+        
+        let ani = inst.ani;
+        // Apply hardcoded negative mapping for rocks
+        if (inst.type.startsWith("rock") && ani < 0) {
+            ani = NEGATIVE_ROCK_MAPPING[ani] ?? 0;
+        }
+
+        const sx = (ani % cols) * spriteSize;
+        
+        // Because we flipped the entire sprite sheet vertically to fix the upside-down rendering,
+        // the original "Row 0" is now at the bottom of the canvas. We must invert the row index!
+        const rows = Math.floor(sheet.height / spriteSize);
+        const row = Math.floor(ani / cols);
+        const invertedRow = (rows - 1) - row;
+        
+        const sy = invertedRow * spriteSize;
+
+        // Bottom-center anchor
+        const dx = inst.x - (spriteSize / 2);
+        const dy = inst.y - spriteSize;
+
+        ctx.drawImage(sheet, sx, sy, spriteSize, spriteSize, dx, dy, spriteSize, spriteSize);
+    }
+
     function render() {
         if (!currentImageData) return;
         
@@ -85,38 +169,15 @@ document.addEventListener('DOMContentLoaded', () => {
         stageCanvas.height = currentImageData.height;
         ctx.putImageData(currentImageData, 0, 0);
 
-        if (showTreesCheck.checked && treePositions.length > 0) {
-            ctx.fillStyle = 'rgba(46, 204, 113, 0.8)'; // Semi-transparent green
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 1;
-            
-            for (const pos of treePositions) {
-                // Draw a triangle at pos.x, pos.y (assuming bottom center)
-                const size = 30; // height of triangle
-                const width = 20; // base width
-                ctx.beginPath();
-                ctx.moveTo(pos.x, pos.y - size); // top tip
-                ctx.lineTo(pos.x - width / 2, pos.y); // bottom left
-                ctx.lineTo(pos.x + width / 2, pos.y); // bottom right
-                ctx.closePath();
-                ctx.fill();
-                ctx.stroke();
-            }
-        }
+        // Sort instances by Y coordinate for correct depth rendering (painter's algorithm)
+        const allInstances: SpriteInstance[] = [];
+        if (showTreesCheck.checked) allInstances.push(...treeInstances);
+        if (showRocksCheck.checked) allInstances.push(...rockInstances);
+        
+        allInstances.sort((a, b) => a.y - b.y);
 
-        if (showRocksCheck.checked && rockPositions.length > 0) {
-            ctx.fillStyle = 'rgba(231, 76, 60, 0.8)'; // Semi-transparent red
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 1;
-            
-            for (const pos of rockPositions) {
-                // Draw a circle. Assuming bottom center for rocks as well.
-                const radius = 10;
-                ctx.beginPath();
-                ctx.arc(pos.x, pos.y - radius, radius, 0, 2 * Math.PI);
-                ctx.fill();
-                ctx.stroke();
-            }
+        for (const inst of allInstances) {
+            drawSprite(ctx, inst);
         }
     }
 
@@ -133,22 +194,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             statusMsg.textContent = `Decoding DDS...`;
-            currentImageData = DDSDecoder.decodeToImageData(fileBytes);
+            currentImageData = DDSDecoder.decodeToImageData(fileBytes, true); // true = flip background vertically
             
             // Extract trees
             statusMsg.textContent = `Extracting Stage ${stageId} trees...`;
             const forestPath = `data-common/stage_data/umd/stage${stageId}/forestpos.txt`;
             const forestBytes = await archive.extractFile(pkdFile, forestPath);
-            treePositions = [];
+            treeInstances = [];
+            const typesToLoad = new Set<string>();
             
             if (forestBytes) {
                 const text = new TextDecoder().decode(forestBytes);
-                const regex = /MakeForest\(\s*vector\(([-0-9.]+),\s*([-0-9.]+)\)/g;
+                // e.g. MakeForest( vector(968,24),"tree_spring",0,vector(1.000000,1.000000,1.000000),0.000000);
+                const regex = /MakeForest\(\s*vector\(([-0-9.]+),\s*([-0-9.]+)\),\s*"([^"]+)",\s*([-0-9]+)/g;
                 let match;
                 while ((match = regex.exec(text)) !== null) {
-                    treePositions.push({
+                    const type = match[3];
+                    typesToLoad.add(type);
+                    treeInstances.push({
                         x: parseFloat(match[1]),
-                        y: parseFloat(match[2])
+                        y: parseFloat(match[2]),
+                        type: type,
+                        ani: parseInt(match[4], 10)
                     });
                 }
             }
@@ -157,31 +224,40 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMsg.textContent = `Extracting Stage ${stageId} rocks...`;
             const rockPath = `data-common/stage_data/umd/stage${stageId}/rockpos.txt`;
             const rockBytes = await archive.extractFile(pkdFile, rockPath);
-            rockPositions = [];
+            rockInstances = [];
             
             if (rockBytes) {
                 const text = new TextDecoder().decode(rockBytes);
                 // e.g. MakeStdObj( vector(1728,8),"rock_1",-4,...);
-                const regex = /MakeStdObj\(\s*vector\(([-0-9.]+),\s*([-0-9.]+)\)/g;
+                const regex = /MakeStdObj\(\s*vector\(([-0-9.]+),\s*([-0-9.]+)\),\s*"([^"]+)",\s*([-0-9]+)/g;
                 let match;
                 while ((match = regex.exec(text)) !== null) {
-                    rockPositions.push({
+                    const type = match[3];
+                    typesToLoad.add(type);
+                    rockInstances.push({
                         x: parseFloat(match[1]),
-                        y: parseFloat(match[2])
+                        y: parseFloat(match[2]),
+                        type: type,
+                        ani: parseInt(match[4], 10)
                     });
                 }
             }
             
+            statusMsg.textContent = `Loading sprite sheets...`;
+            for (const t of typesToLoad) {
+                await ensureSpriteSheet(t);
+            }
+
             render();
-            statusMsg.textContent = `Successfully loaded Stage ${stageId}! (${treePositions.length} trees, ${rockPositions.length} rocks)`;
+            statusMsg.textContent = `Successfully loaded Stage ${stageId}! (${treeInstances.length} trees, ${rockInstances.length} rocks)`;
         } catch (e: any) {
             statusMsg.textContent = "Error: " + e.message;
             console.error(e);
             
             // Clear on error
             currentImageData = null;
-            treePositions = [];
-            rockPositions = [];
+            treeInstances = [];
+            rockInstances = [];
             const ctx = stageCanvas.getContext('2d');
             ctx?.clearRect(0, 0, stageCanvas.width, stageCanvas.height);
         }
