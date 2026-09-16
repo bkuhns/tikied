@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         r: number;
         g: number;
         b: number;
+        alpha?: number;
         scale?: number;
     }
 
@@ -54,7 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
         "home": { path: "data-common/textures/bgdata/objects/House1.dds", w: 256, h: 128 },
         "home_grass": { path: "data-common/textures/bgdata/objects/House1_ground.dds", w: 512, h: 128 },
         "gem_sign": { path: "data-common/textures/ingameui/main/gemsign.dds", w: 128, h: 128 },
-        "research_sign": { path: "data-common/textures/ingameui/resource/researchsign.dds", w: 128, h: 128 }
+        "research_sign": { path: "data-common/textures/ingameui/resource/researchsign.dds", w: 128, h: 128 },
+        "shadow": { path: "data-common/textures/bgdata/objects/shadow.dds", w: 128, h: 64 }
     };
 
     const spriteCache = new Map<string, HTMLCanvasElement>();
@@ -189,6 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const dx = inst.x - (drawWidth / 2);
         const dy = inst.y - (drawHeight / 2);
 
+        ctx.globalAlpha = inst.alpha ?? 1.0;
+
         if (inst.r >= 0.99 && inst.g >= 0.99 && inst.b >= 0.99) {
             // Fast path: no tinting needed
             ctx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
@@ -270,9 +274,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 while ((match = regex.exec(text)) !== null) {
                     const type = match[3];
                     typesToLoad.add(type);
+                    typesToLoad.add("shadow");
+                    
+                    const treeX = parseFloat(match[1]);
+                    const treeY = parseFloat(match[2]);
+                    
+                    // Push the generic shadow sprite right at the tree base
                     treeInstances.push({
-                        x: parseFloat(match[1]),
-                        y: parseFloat(match[2]),
+                        x: treeX,
+                        y: treeY + 55,
+                        z: treeY - 1, // draw underneath tree
+                        type: "shadow",
+                        ani: 0,
+                        r: 1,
+                        g: 1,
+                        b: 1,
+                        alpha: 0.2
+                    });
+                    
+                    treeInstances.push({
+                        x: treeX,
+                        y: treeY,
+                        z: treeY,
                         type: type,
                         ani: parseInt(match[4], 10),
                         r: parseFloat(match[5]),
