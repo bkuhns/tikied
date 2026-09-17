@@ -16,14 +16,14 @@ const MainApp: React.FC = () => {
     const [status, setStatus] = useState<string>('');
     const [currentView, setCurrentView] = useState<ViewState>('hub');
 
-    const handleLoadArchive = async () => {
-        if (!pkiFile || !pkdFile) {
+    const handleLoadArchive = async (pki: File, pkd: File) => {
+        if (!pki || !pkd) {
             setStatus('Please select both PKI and PKD files.');
             return;
         }
         try {
             setStatus("Parsing original archives...");
-            const arch = await PJMArchive.parse(pkiFile);
+            const arch = await PJMArchive.parse(pki);
             setArchive(arch);
             setStatus("Archives loaded! Select an experiment below.");
         } catch (e: any) {

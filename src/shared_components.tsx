@@ -28,29 +28,62 @@ interface ArchiveSelectorProps {
     setPkiFile: (file: File | null) => void;
     pkdFile: File | null;
     setPkdFile: (file: File | null) => void;
-    onLoadArchive: () => void;
+    onLoadArchive: (pki: File, pkd: File) => void;
     status: string;
 }
 
 export const ArchiveSelector: React.FC<ArchiveSelectorProps> = ({ pkiFile, setPkiFile, pkdFile, setPkdFile, onLoadArchive, status }) => {
+    
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        let newPki = pkiFile;
+        let newPkd = pkdFile;
+
+        for (const file of files) {
+            if (file.name.toLowerCase().endsWith('.pkiwin')) {
+                newPki = file;
+                setPkiFile(file);
+            } else if (file.name.toLowerCase().endsWith('.pkdwin')) {
+                newPkd = file;
+                setPkdFile(file);
+            }
+        }
+
+        if (newPki && newPkd) {
+            onLoadArchive(newPki, newPkd);
+        }
+    };
+    
     return (
-        <>
-            <div className="form-group">
-                <label>Original <code>monsters.pkiwin</code>:</label>
-                <input type="file" accept=".pkiwin" onChange={e => setPkiFile(e.target.files?.[0] || null)} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div>
+                <label style={{
+                    display: 'inline-block',
+                    padding: '8px 16px',
+                    backgroundColor: '#007BFF',
+                    color: 'white',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold'
+                }}>
+                    Select Game Archives (monsters.pkiwin & monsters.pkdwin)
+                    <input 
+                        type="file" 
+                        accept=".pkiwin,.pkdwin" 
+                        multiple 
+                        onChange={handleFileChange} 
+                        style={{ display: 'none' }}
+                    />
+                </label>
             </div>
-            <div className="form-group">
-                <label>Original <code>monsters.pkdwin</code>:</label>
-                <input type="file" accept=".pkdwin" onChange={e => setPkdFile(e.target.files?.[0] || null)} />
+            
+            <div style={{ fontSize: '0.9em', color: '#555' }}>
+                <div><strong>PKI:</strong> {pkiFile ? pkiFile.name : 'Not selected'}</div>
+                <div><strong>PKD:</strong> {pkdFile ? pkdFile.name : 'Not selected'}</div>
             </div>
-            <button 
-                onClick={onLoadArchive} 
-                disabled={!pkiFile || !pkdFile}
-            >
-                Load archives
-            </button>
+
             {status && <div id="status" className="status-msg">{status}</div>}
-        </>
+        </div>
     );
 };
 
