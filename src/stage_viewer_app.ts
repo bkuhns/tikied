@@ -555,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Add home_grass (drawn first/lowest Z)
                     const grassX = hx; // The grass is visually centered on the home
                     const grassY = hy + 50; // The ground is visually below the home
-                    objectInstances.push({ x: grassX, y: grassY, z: hy + 25, type: "home_grass", ani: homeAni, r: 1, g: 1, b: 1 });
+                    objectInstances.push({ x: grassX, y: grassY, z: -1, type: "home_grass", ani: homeAni, r: 1, g: 1, b: 1 });
                     
                     // Add home
                     objectInstances.push({ x: hx, y: hy, z: hy + 50, type: "home", ani: homeAni, r: 1, g: 1, b: 1 });
