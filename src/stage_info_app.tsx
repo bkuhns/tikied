@@ -4,6 +4,7 @@ import { PJMArchive } from './pjm_archive.js';
 import { DDSDecoder } from './dds_decoder.js';
 import { ISLANDS } from './stages_data.js';
 import { StageParser, StageSettings, WaveInfo } from './stage_parser.js';
+import { RoutesRenderer } from './routes_renderer.js';
 
 const DIFFICULTY_LEVELS = ["Casual", "Regular", "Hardcore"];
 
@@ -117,8 +118,9 @@ const StageInfoApp: React.FC = () => {
 
                 setStageSettings({
                     coinWorth: itemData.coinWorth,
-                    p1Money: itemData.p1Money,
-                    p2Money: itemData.p2Money,
+                    money1P: itemData.money1P,
+                    money2P_1: itemData.money2P_1,
+                    money2P_2: itemData.money2P_2,
                     waves: waves
                 });
                 setStatus(`Stage ${selectedStage} loaded.`);
@@ -209,30 +211,35 @@ const StageInfoApp: React.FC = () => {
             )}
 
             {stageSettings && (
-                <div className="section">
-                    <h2>3. Stage Totals & Settings</h2>
-                    <div style={{ display: 'flex', gap: '40px' }}>
-                        <ul style={{ listStyle: 'none', padding: 0 }}>
-                            <li><strong>Grand Total Coins:</strong> 🪙 {totalCoins}</li>
-                            <li><strong>Grand Total Gems:</strong> 💎 {totalGems}</li>
-                        </ul>
-                        <ul style={{ listStyle: 'none', padding: 0 }}>
-                            <li><strong>1P Initial Money:</strong> {stageSettings.p1Money}</li>
-                            <li><strong>2P Initial Money:</strong> {stageSettings.p2Money}</li>
-                            <li><strong>Coin Value:</strong> {stageSettings.coinWorth}</li>
-                        </ul>
+                <>
+                    <div className="section">
+                        <h2>3. Difficulty Modifiers</h2>
                         <ul style={{ listStyle: 'none', padding: 0 }}>
                             <li><strong>Boss HP Multiplier:</strong> {bossMultiplier.toFixed(2)}x</li>
                             <li><strong>Monster HP Multiplier:</strong> {hpMultiplier.toFixed(2)}x</li>
                             <li><strong>Monster Count Multiplier:</strong> {countMultiplier.toFixed(2)}x</li>
                         </ul>
                     </div>
-                </div>
+                    <div className="section">
+                        <h2>4. Stage Totals & Settings</h2>
+                        <div style={{ display: 'flex', gap: '40px' }}>
+                            <ul style={{ listStyle: 'none', padding: 0 }}>
+                                <li><strong>Grand Total Coins:</strong> 🪙 {totalCoins}</li>
+                                <li><strong>Grand Total Gems:</strong> 💎 {totalGems}</li>
+                            </ul>
+                            <ul style={{ listStyle: 'none', padding: 0 }}>
+                                <li><strong>Initial Coins:</strong> {stageSettings.money1P}</li>
+                                <li><strong>Initial Coins (co-op):</strong> {stageSettings.money2P_1} (P1), {stageSettings.money2P_2} (P2)</li>
+                                <li><strong>Coin Worth:</strong> {stageSettings.coinWorth}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </>
             )}
 
             {stageSettings && (
                 <div className="section">
-                    <h2>4. Waves ({stageSettings.waves.length})</h2>
+                    <h2>5. Waves ({stageSettings.waves.length})</h2>
                     {stageSettings.waves.map((wave, i) => {
                         // The icon shown for the wave uses the type of its very first sub-wave.
                         const firstMonster = wave.subWaves[0]?.monster;
@@ -299,6 +306,7 @@ const StageInfoApp: React.FC = () => {
                                             <th>Monster Name</th>
                                             <th>Count</th>
                                             <th>HP (per monster)</th>
+                                            <th>Route</th>
                                             <th>Start Time (s)</th>
                                             <th>Interval (s)</th>
                                         </tr>
@@ -306,11 +314,12 @@ const StageInfoApp: React.FC = () => {
                                     <tbody>
                                         {wave.subWaves.map((sub, j) => {
                                             const m = sub.monster;
-                                            let displayName = m.baseName;
-                                            if (m.isShielded) displayName += " (shielded)";
-                                            if (m.isMagicResistant) displayName += " (magic resistant)";
-                                            if (m.isCold) displayName += " (cold)";
-                                            if (m.isOnFire) displayName += " 🔥 (on fire)";
+                                            
+                                            const nameElements: React.ReactNode[] = [<span key="base">{m.baseName}</span>];
+                                            if (m.isShielded) nameElements.push(<span key="shielded" title="Shielded" style={{cursor: 'help'}}> 🟢</span>);
+                                            if (m.isMagicResistant) nameElements.push(<span key="magic" title="Magic Resistant" style={{cursor: 'help'}}> 🔴</span>);
+                                            if (m.isCold) nameElements.push(<span key="cold" title="Cold" style={{cursor: 'help'}}> ❄️</span>);
+                                            if (m.isOnFire) nameElements.push(<span key="fire" title="On Fire" style={{cursor: 'help'}}> 🔥</span>);
                                             
                                             // Determine correct multiplier based on if it's a boss
                                             const isBoss = m.id.startsWith("boss");
@@ -322,9 +331,22 @@ const StageInfoApp: React.FC = () => {
 
                                             return (
                                                 <tr key={j}>
-                                                    <td><strong>{displayName}</strong></td>
+                                                    <td><strong>{nameElements}</strong></td>
                                                     <td>{finalCount}</td>
                                                     <td>{finalHp}</td>
+                                                    <td>
+                                                        {sub.route !== undefined ? (
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                                <div style={{
+                                                                    width: '12px',
+                                                                    height: '12px',
+                                                                    backgroundColor: RoutesRenderer.getRouteColor(sub.route),
+                                                                    border: '1px solid #000'
+                                                                }}></div>
+                                                                {sub.route}
+                                                            </div>
+                                                        ) : '-'}
+                                                    </td>
                                                     <td>{sub.startTime !== undefined ? sub.startTime : '-'}</td>
                                                     <td>{sub.weight !== undefined ? sub.weight : '-'}</td>
                                                 </tr>

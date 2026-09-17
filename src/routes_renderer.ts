@@ -8,7 +8,7 @@ export class RoutesRenderer {
     private routes: Route[] = [];
 
     // Fixed list of colors as requested
-    private readonly COLORS = [
+    public static readonly COLORS = [
         "rgb(255, 0, 0)",    // Red
         "rgb(0, 255, 0)",    // Green
         "rgb(0, 127, 255)",  // Light Blue
@@ -18,6 +18,10 @@ export class RoutesRenderer {
         "rgb(255, 127, 0)",  // Orange
         "rgb(255, 255, 255)" // White
     ];
+
+    public static getRouteColor(routeIndex: number): string {
+        return RoutesRenderer.COLORS[routeIndex % RoutesRenderer.COLORS.length];
+    }
 
     public parseRoadTxt(content: string) {
         this.routes = [];
@@ -44,7 +48,7 @@ export class RoutesRenderer {
             if (points.length > 0) {
                 this.routes.push({
                     points: points,
-                    color: this.COLORS[colorIdx % this.COLORS.length],
+                    color: RoutesRenderer.getRouteColor(colorIdx),
                     visible: true
                 });
                 colorIdx++;

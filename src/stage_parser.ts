@@ -30,8 +30,9 @@ export interface WaveInfo {
 
 export interface StageSettings {
     coinWorth: number;
-    p1Money: number;
-    p2Money: number;
+    money1P: number;
+    money2P_1: number;
+    money2P_2: number;
     waves: WaveInfo[];
 }
 
@@ -41,19 +42,19 @@ export class StageParser {
         text = text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 
         const coinWorthMatch = text.match(/global\s+g_coin_worth\s*=\s*(\d+);/);
-        const p1Match = text.match(/GameState\.money_0\s*=\s*(\d+);/);
-        const p2Match = text.match(/GameState\.money_1\s*=\s*(\d+);/);
+        
+        const m0Matches = [...text.matchAll(/GameState\.money_0\s*=\s*(\d+);/g)];
+        const m1Matches = [...text.matchAll(/GameState\.money_1\s*=\s*(\d+);/g)];
 
         const coinWorth = coinWorthMatch ? parseInt(coinWorthMatch[1]) : 10;
-        const p1Money = p1Match ? parseInt(p1Match[1]) : 0;
-        let p2Money = 0;
-        if (p2Match) {
-            // Find the last match, which is usually inside the "else" (2P mode)
-            const allP2 = [...text.matchAll(/GameState\.money_1\s*=\s*(\d+);/g)];
-            if (allP2.length > 0) {
-                p2Money = parseInt(allP2[allP2.length - 1][1]);
-            }
-        }
+        
+        let money1P = 0;
+        let money2P_1 = 0;
+        let money2P_2 = 0;
+
+        if (m0Matches.length > 0) money1P = parseInt(m0Matches[0][1]);
+        if (m0Matches.length > 1) money2P_1 = parseInt(m0Matches[1][1]);
+        if (m1Matches.length > 1) money2P_2 = parseInt(m1Matches[1][1]);
 
         // Parse wave_coin_total
         const waveCoins: Record<string, number> = {};
@@ -75,7 +76,7 @@ export class StageParser {
             }
         }
 
-        return { coinWorth, p1Money, p2Money, waveCoins, waveGems };
+        return { coinWorth, money1P, money2P_1, money2P_2, waveCoins, waveGems };
     }
 
     public static parseMonsterDef(id: string, onFire: boolean): MonsterDef {
@@ -186,6 +187,7 @@ export class StageParser {
                     const props = subMatch[1];
                     const typeMatch = props.match(/type\s*=\s*"([^"]+)"/);
                     const countMatch = props.match(/count\s*=\s*(\d+)/);
+                    const routeMatch = props.match(/route\s*=\s*(\d+)/);
                     const startMatch = props.match(/start_time\s*=\s*([\d.]+)/);
                     const intervalMatch = props.match(/weight\s*=\s*([\d.]+)/);
                     const onFireMatch = props.match(/on_fire\s*=\s*true/i);
@@ -194,6 +196,7 @@ export class StageParser {
                         subWaves.push({
                             monster,
                             count: countMatch ? parseInt(countMatch[1]) : 1,
+                            route: routeMatch ? parseInt(routeMatch[1]) : undefined,
                             startTime: startMatch ? parseFloat(startMatch[1]) : undefined,
                             weight: intervalMatch ? parseFloat(intervalMatch[1]) : undefined
                         });
