@@ -5,7 +5,25 @@ import { DDSDecoder } from './dds_decoder.js';
 import { ISLANDS } from './stages_data.js';
 import { StageParser, StageSettings, WaveInfo } from './stage_parser.js';
 
+const DIFFICULTY_LEVELS = ["Casual", "Regular", "Hardcore"];
 
+const DIFFICULTY_DATA: Record<string, { boss: number[], multiply: number[], count: number[] }> = {
+    "Tiki Island": {
+        boss: [0.85, 1.00, 1.10],
+        multiply: [0.90, 1.00, 1.35],
+        count: [0.75, 1.00, 0.80]
+    },
+    "Toki Island": {
+        boss: [0.75, 1.00, 1.05],
+        multiply: [0.90, 1.00, 1.20],
+        count: [0.75, 1.00, 0.85]
+    },
+    "TucTuc Island": {
+        boss: [0.85, 1.00, 1.10],
+        multiply: [0.90, 1.00, 1.35],
+        count: [0.75, 1.00, 0.80]
+    }
+};
 
 const StageInfoApp: React.FC = () => {
     const [pkiFile, setPkiFile] = useState<File | null>(null);
@@ -14,6 +32,7 @@ const StageInfoApp: React.FC = () => {
     const [status, setStatus] = useState<string>('Select PKI and PKD files.');
     
     const [selectedStage, setSelectedStage] = useState<string>("11");
+    const [difficultyIndex, setDifficultyIndex] = useState<number>(1);
     const [stageSettings, setStageSettings] = useState<StageSettings | null>(null);
     const [barIconsUrl, setBarIconsUrl] = useState<string | null>(null);
     const [barIconsSize, setBarIconsSize] = useState<{w: number, h: number} | null>(null);
@@ -121,6 +140,23 @@ const StageInfoApp: React.FC = () => {
         }
     }
 
+    // Compute active multipliers
+    let currentIslandName = "TucTuc Island"; // Default fallback
+    for (const island of ISLANDS) {
+        if (island.stages.find(s => s.id.toString() === selectedStage)) {
+            currentIslandName = island.name;
+            break;
+        }
+    }
+    
+    // If island is past TucTuc (e.g. Gati Gati), it falls back to TucTuc multipliers
+    const islandKey = DIFFICULTY_DATA[currentIslandName] ? currentIslandName : "TucTuc Island";
+    const difficultyData = DIFFICULTY_DATA[islandKey];
+    
+    const bossMultiplier = difficultyData.boss[difficultyIndex];
+    const hpMultiplier = difficultyData.multiply[difficultyIndex];
+    const countMultiplier = difficultyData.count[difficultyIndex];
+
     return (
         <div className="container">
             <nav className="breadcrumb">
@@ -145,19 +181,29 @@ const StageInfoApp: React.FC = () => {
             {archive && (
                 <div className="section">
                     <h2>2. Select Stage</h2>
-                    <div className="form-group">
-                        <label>Stage:</label>
-                        <select value={selectedStage} onChange={e => setSelectedStage(e.target.value)}>
-                            {ISLANDS.map(island => (
-                                <optgroup key={island.id} label={island.name}>
-                                    {island.stages.map(stage => (
-                                        <option key={stage.id} value={stage.id}>
-                                            Stage {stage.id}: {stage.difficulty} - {stage.introduction}
-                                        </option>
-                                    ))}
-                                </optgroup>
-                            ))}
-                        </select>
+                    <div style={{ display: 'flex', gap: '20px' }}>
+                        <div className="form-group" style={{ flex: 1 }}>
+                            <label>Stage:</label>
+                            <select value={selectedStage} onChange={e => setSelectedStage(e.target.value)}>
+                                {ISLANDS.map(island => (
+                                    <optgroup key={island.id} label={island.name}>
+                                        {island.stages.map(stage => (
+                                            <option key={stage.id} value={stage.id}>
+                                                Stage {stage.id}: {stage.difficulty} - {stage.introduction}
+                                            </option>
+                                        ))}
+                                    </optgroup>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group" style={{ flex: 1 }}>
+                            <label>Difficulty:</label>
+                            <select value={difficultyIndex} onChange={e => setDifficultyIndex(parseInt(e.target.value))}>
+                                {DIFFICULTY_LEVELS.map((level, idx) => (
+                                    <option key={idx} value={idx}>{level}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
             )}
@@ -174,6 +220,11 @@ const StageInfoApp: React.FC = () => {
                             <li><strong>1P Initial Money:</strong> {stageSettings.p1Money}</li>
                             <li><strong>2P Initial Money:</strong> {stageSettings.p2Money}</li>
                             <li><strong>Coin Value:</strong> {stageSettings.coinWorth}</li>
+                        </ul>
+                        <ul style={{ listStyle: 'none', padding: 0 }}>
+                            <li><strong>Boss HP Multiplier:</strong> {bossMultiplier.toFixed(2)}x</li>
+                            <li><strong>Monster HP Multiplier:</strong> {hpMultiplier.toFixed(2)}x</li>
+                            <li><strong>Monster Count Multiplier:</strong> {countMultiplier.toFixed(2)}x</li>
                         </ul>
                     </div>
                 </div>
@@ -261,13 +312,18 @@ const StageInfoApp: React.FC = () => {
                                             if (m.isCold) displayName += " (cold)";
                                             if (m.isOnFire) displayName += " 🔥 (on fire)";
                                             
+                                            // Determine correct multiplier based on if it's a boss
+                                            const isBoss = m.id.startsWith("boss");
+                                            const globalMult = isBoss ? bossMultiplier : hpMultiplier;
                                             const waveMult = wave.hpUp !== undefined ? wave.hpUp : 1.0;
-                                            const finalHp = m.baseHealth > 0 ? (m.baseHealth * waveMult).toFixed(2) : '-';
+                                            
+                                            const finalHp = m.baseHealth > 0 ? (m.baseHealth * waveMult * globalMult).toFixed(2) : '-';
+                                            const finalCount = Math.floor(sub.count * countMultiplier);
 
                                             return (
                                                 <tr key={j}>
                                                     <td><strong>{displayName}</strong></td>
-                                                    <td>{sub.count}</td>
+                                                    <td>{finalCount}</td>
                                                     <td>{finalHp}</td>
                                                     <td>{sub.startTime !== undefined ? sub.startTime : '-'}</td>
                                                     <td>{sub.weight !== undefined ? sub.weight : '-'}</td>
