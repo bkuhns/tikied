@@ -2,11 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PJMArchive } from './pjm_archive.js';
 import { DDSDecoder } from './dds_decoder.js';
-import { ISLANDS } from './stages_data.js';
+import { ISLANDS, StageInfo } from './stages_data.js';
 import { StageParser, StageSettings, WaveInfo } from './stage_parser.js';
 import { RoutesRenderer } from './routes_renderer.js';
 
-import { StageSelector, DIFFICULTY_LEVELS, DIFFICULTY_DATA } from './shared_components.js';
+import { StageSelection, DIFFICULTY_LEVELS, DIFFICULTY_DATA } from './shared_components.js';
 
 interface StageInfoAppProps {
     archive: PJMArchive;
@@ -18,7 +18,7 @@ interface StageInfoAppProps {
 export const StageInfoApp: React.FC<StageInfoAppProps> = ({ archive, pkdFile, onBack }) => {
     const [status, setStatus] = useState<string>('');
     
-    const [selectedStage, setSelectedStage] = useState<string>("11");
+    const [selectedStage, setSelectedStage] = useState<StageInfo>(ISLANDS[0].stages.find(s => s.id === 11) || ISLANDS[0].stages[0]);
     const [difficultyIndex, setDifficultyIndex] = useState<number>(1);
     const [stageSettings, setStageSettings] = useState<StageSettings | null>(null);
     const [barIconsUrl, setBarIconsUrl] = useState<string | null>(null);
@@ -54,16 +54,16 @@ export const StageInfoApp: React.FC<StageInfoAppProps> = ({ archive, pkdFile, on
         if (!archive || !pkdFile) return;
 
         const loadData = async () => {
-            setStatus(`Loading data for Stage ${selectedStage}...`);
+            setStatus(`Loading data for Stage ${selectedStage.id}...`);
             try {
-                const itemPath = `data-common/stage_data/umd/stage${selectedStage}/item_data.txt`;
-                const enemyPath = `data-common/stage_data/umd/stage${selectedStage}/enemy_data.txt`;
+                const itemPath = `data-common/stage_data/umd/stage${selectedStage.id}/item_data.txt`;
+                const enemyPath = `data-common/stage_data/umd/stage${selectedStage.id}/enemy_data.txt`;
                 
                 const itemBytes = await archive.extractFile(pkdFile, itemPath);
                 const enemyBytes = await archive.extractFile(pkdFile, enemyPath);
                 
                 if (!itemBytes || !enemyBytes) {
-                    setStatus(`Failed to find data for stage ${selectedStage}.`);
+                    setStatus(`Failed to find data for stage ${selectedStage.id}.`);
                     setStageSettings(null);
                     return;
                 }
@@ -101,36 +101,36 @@ export const StageInfoApp: React.FC<StageInfoAppProps> = ({ archive, pkdFile, on
                     money2P_2: itemData.money2P_2,
                     waves: waves
                 });
-                setStatus(`Stage ${selectedStage} loaded.`);
+                setStatus(`Stage ${selectedStage.id} loaded.`);
             } catch (e: any) {
                 setStatus('Error loading stage data: ' + e.message);
             }
         };
 
         loadData();
-    }, [archive, selectedStage]);
+    }, [archive, selectedStage, pkdFile]);
 
     // Calculate Grand Totals
     let totalCoins = 0;
     let totalGems = 0;
     if (stageSettings) {
-        for (const wave of stageSettings.waves) {
-            totalCoins += wave.coinsTotal;
-            totalGems += wave.gemsTotal;
+        for (const w of stageSettings.waves) {
+            totalCoins += w.coinsTotal;
+            totalGems += w.gemsTotal;
         }
     }
 
     // Compute active multipliers
     let currentIslandName = "TucTuc Island"; // Default fallback
     for (const island of ISLANDS) {
-        if (island.stages.find(s => s.id.toString() === selectedStage)) {
+        if (island.stages.find(s => s.id === selectedStage.id)) {
             currentIslandName = island.name;
             break;
         }
     }
     
     // If island is past TucTuc (e.g. Gati Gati), it falls back to TucTuc multipliers
-    const islandKey = DIFFICULTY_DATA[currentIslandName] ? currentIslandName : "TucTuc Island";
+    const islandKey = currentIslandName as keyof typeof DIFFICULTY_DATA;
     const difficultyData = DIFFICULTY_DATA[islandKey];
     
     const bossMultiplier = difficultyData.boss[difficultyIndex];
@@ -146,12 +146,21 @@ export const StageInfoApp: React.FC<StageInfoAppProps> = ({ archive, pkdFile, on
             <p>View enemy waves and stage settings.</p>
 
             <div className="section">
-                <h2>2. Select Stage</h2>
-                <StageSelector 
-                    selectedStage={selectedStage} setSelectedStage={setSelectedStage}
-                    difficultyIndex={difficultyIndex} setDifficultyIndex={setDifficultyIndex}
-                    showDifficulty={true}
-                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '15px' }}>
+                    <StageSelection 
+                        archive={archive} pkdFile={pkdFile}
+                        onSelectStage={setSelectedStage}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <label>Difficulty:</label>
+                        <select value={difficultyIndex} onChange={e => setDifficultyIndex(parseInt(e.target.value))}>
+                            {DIFFICULTY_LEVELS.map((level, idx) => (
+                                <option key={idx} value={idx}>{level}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+                <h2 style={{ marginTop: '10px' }}>Stage {selectedStage.id}: {selectedStage.difficulty} - {selectedStage.introduction}</h2>
             </div>
 
             {stageSettings && (

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createRoot } from 'react-dom/client';
 import { PJMArchive } from './pjm_archive.js';
 import { DDSDecoder } from './dds_decoder.js';
+import { ISLANDS, StageInfo } from './stages_data.js';
 import { WebGLWaterRenderer } from './webgl_water.js';
 import { RoutesRenderer } from './routes_renderer.js';
-import { ArchiveSelector, StageSelector } from './shared_components.js';
+import { StageSelection } from './shared_components.js';
 
 interface SpriteInstance {
     x: number;
@@ -246,7 +246,7 @@ interface StageViewerAppProps {
 
 export const StageViewerApp: React.FC<StageViewerAppProps> = ({ archive, pkdFile, onBack }) => {
     const [status, setStatus] = useState<string>('');
-    const [selectedStage, setSelectedStage] = useState<string>("11");
+    const [selectedStage, setSelectedStage] = useState<StageInfo>(ISLANDS[0].stages.find(s => s.id === 11) || ISLANDS[0].stages[0]);
     const [isMaximized, setIsMaximized] = useState<boolean>(false);
 
     // Toggles state
@@ -396,8 +396,8 @@ export const StageViewerApp: React.FC<StageViewerAppProps> = ({ archive, pkdFile
 
         const loadData = async () => {
             try {
-                setStatus(`Extracting Stage ${selectedStage} background...`);
-                const bgPath = `data-common/textures/bgdata/bg/stage${selectedStage}.dds`;
+                setStatus(`Extracting Stage ${selectedStage.id} background...`);
+                const bgPath = `data-common/textures/bgdata/bg/stage${selectedStage.id}.dds`;
                 
                 const fileBytes = await archive.extractFile(pkdFile, bgPath);
                 if (!fileBytes) {
@@ -416,8 +416,8 @@ export const StageViewerApp: React.FC<StageViewerAppProps> = ({ archive, pkdFile
                 }
 
                 // Extract routes
-                setStatus(`Extracting Stage ${selectedStage} routes...`);
-                const roadPath = `data-common/stage_data/umd/stage${selectedStage}/road.txt`;
+                setStatus(`Extracting Stage ${selectedStage.id} routes...`);
+                const roadPath = `data-common/stage_data/umd/stage${selectedStage.id}/road.txt`;
                 const roadBytes = await archive.extractFile(pkdFile, roadPath);
                 routesRenderer.clear();
                 if (roadBytes) {
@@ -430,8 +430,8 @@ export const StageViewerApp: React.FC<StageViewerAppProps> = ({ archive, pkdFile
                 }
 
                 // Extract trees and home position
-                setStatus(`Extracting Stage ${selectedStage} trees and home...`);
-                const forestPath = `data-common/stage_data/umd/stage${selectedStage}/forestpos.txt`;
+                setStatus(`Extracting Stage ${selectedStage.id} trees and home...`);
+                const forestPath = `data-common/stage_data/umd/stage${selectedStage.id}/forestpos.txt`;
                 const forestBytes = await archive.extractFile(pkdFile, forestPath);
                 const typesToLoad = new Set<string>();
                 typesToLoad.add('hud_bar');
@@ -441,8 +441,8 @@ export const StageViewerApp: React.FC<StageViewerAppProps> = ({ archive, pkdFile
                 sceneRef.current.objectInstances = [];
 
                 // Populate bridges
-                if (BRIDGE_DATA[selectedStage]) {
-                    for (const bridge of BRIDGE_DATA[selectedStage]) {
+                if (BRIDGE_DATA[selectedStage.id.toString()]) {
+                    for (const bridge of BRIDGE_DATA[selectedStage.id.toString()]) {
                         typesToLoad.add(bridge.type);
                         sceneRef.current.bridgeInstances.push({ ...bridge }); // Clone
                     }
@@ -499,8 +499,8 @@ export const StageViewerApp: React.FC<StageViewerAppProps> = ({ archive, pkdFile
                 }
 
                 // Extract rocks
-                setStatus(`Extracting Stage ${selectedStage} rocks...`);
-                const rockPath = `data-common/stage_data/umd/stage${selectedStage}/rockpos.txt`;
+                setStatus(`Extracting Stage ${selectedStage.id} rocks...`);
+                const rockPath = `data-common/stage_data/umd/stage${selectedStage.id}/rockpos.txt`;
                 const rockBytes = await archive.extractFile(pkdFile, rockPath);
                 sceneRef.current.rockInstances = [];
                 
@@ -526,7 +526,7 @@ export const StageViewerApp: React.FC<StageViewerAppProps> = ({ archive, pkdFile
                     await ensureSpriteSheet(t, archive, pkdFile);
                 }
 
-                setStatus(`Successfully loaded Stage ${selectedStage}! (${sceneRef.current.treeInstances.length} trees, ${sceneRef.current.rockInstances.length} rocks)`);
+                setStatus(`Successfully loaded Stage ${selectedStage.id}! (${sceneRef.current.treeInstances.length} trees, ${sceneRef.current.rockInstances.length} rocks)`);
             } catch (e: any) {
                 setStatus("Error: " + e.message);
                 console.error(e);
@@ -558,10 +558,13 @@ export const StageViewerApp: React.FC<StageViewerAppProps> = ({ archive, pkdFile
                     </button>
                 </div>
 
-                    <StageSelector 
-                        selectedStage={selectedStage} setSelectedStage={setSelectedStage}
-                        showDifficulty={false}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '15px' }}>
+                    <StageSelection 
+                        archive={archive} pkdFile={pkdFile}
+                        onSelectStage={setSelectedStage}
                     />
+                    <h2 style={{ margin: 0 }}>Stage {selectedStage.id}: {selectedStage.difficulty} - {selectedStage.introduction}</h2>
+                </div>
 
                     <div className="form-group">
                         <label>Show features:</label>
@@ -620,4 +623,5 @@ export const StageViewerApp: React.FC<StageViewerAppProps> = ({ archive, pkdFile
         </div>
     );
 };
+
 

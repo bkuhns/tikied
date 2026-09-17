@@ -265,3 +265,35 @@ export const ISLANDS: IslandInfo[] = [
         ]
     }
 ];
+
+
+const difficultyRank: Record<string, number> = {
+    "Tutorial": 1,
+    "Easy": 2,
+    "Medium": 3,
+    "Hard": 4,
+    "Special": 5,
+    "Final Stage": 6
+};
+
+function parseDifficulty(diff: string) {
+    const match = diff.match(/^([a-zA-Z\s]+?)\s*(\d*)$/);
+    if (!match) return { base: diff, num: 0 };
+    return {
+        base: match[1].trim(),
+        num: match[2] ? parseInt(match[2], 10) : 0
+    };
+}
+
+ISLANDS.forEach(island => {
+    island.stages.sort((a, b) => {
+        const aParsed = parseDifficulty(a.difficulty);
+        const bParsed = parseDifficulty(b.difficulty);
+        
+        const aRank = difficultyRank[aParsed.base] || 99;
+        const bRank = difficultyRank[bParsed.base] || 99;
+        
+        if (aRank !== bRank) return aRank - bRank;
+        return aParsed.num - bParsed.num;
+    });
+});
