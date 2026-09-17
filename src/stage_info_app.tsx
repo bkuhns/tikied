@@ -6,25 +6,7 @@ import { ISLANDS } from './stages_data.js';
 import { StageParser, StageSettings, WaveInfo } from './stage_parser.js';
 import { RoutesRenderer } from './routes_renderer.js';
 
-const DIFFICULTY_LEVELS = ["Casual", "Regular", "Hardcore"];
-
-const DIFFICULTY_DATA: Record<string, { boss: number[], multiply: number[], count: number[] }> = {
-    "Tiki Island": {
-        boss: [0.85, 1.00, 1.10],
-        multiply: [0.90, 1.00, 1.35],
-        count: [0.75, 1.00, 0.80]
-    },
-    "Toki Island": {
-        boss: [0.75, 1.00, 1.05],
-        multiply: [0.90, 1.00, 1.20],
-        count: [0.75, 1.00, 0.85]
-    },
-    "TucTuc Island": {
-        boss: [0.85, 1.00, 1.10],
-        multiply: [0.90, 1.00, 1.35],
-        count: [0.75, 1.00, 0.80]
-    }
-};
+import { ArchiveSelector, StageSelector, DIFFICULTY_LEVELS, DIFFICULTY_DATA } from './shared_components.js';
 
 const StageInfoApp: React.FC = () => {
     const [pkiFile, setPkiFile] = useState<File | null>(null);
@@ -170,50 +152,22 @@ const StageInfoApp: React.FC = () => {
             
             <div className="section">
                 <h2>1. Select Game Archives</h2>
-                <div className="form-group">
-                    <label>Original <code>monsters.pkiwin</code>:</label>
-                    <input type="file" accept=".pkiwin" onChange={e => setPkiFile(e.target.files?.[0] || null)} />
-                </div>
-                <div className="form-group">
-                    <label>Original <code>monsters.pkdwin</code>:</label>
-                    <input type="file" accept=".pkdwin" onChange={e => setPkdFile(e.target.files?.[0] || null)} />
-                </div>
-                <button 
-                    onClick={handleLoadArchive} 
-                    disabled={!pkiFile || !pkdFile}
-                >
-                    Load archives
-                </button>
-                {status && <div id="status" className="status-msg">{status}</div>}
+                <ArchiveSelector 
+                    pkiFile={pkiFile} setPkiFile={setPkiFile}
+                    pkdFile={pkdFile} setPkdFile={setPkdFile}
+                    onLoadArchive={handleLoadArchive}
+                    status={status}
+                />
             </div>
 
             {archive && (
                 <div className="section">
                     <h2>2. Select Stage</h2>
-                    <div style={{ display: 'flex', gap: '20px' }}>
-                        <div className="form-group" style={{ flex: 1 }}>
-                            <label>Stage:</label>
-                            <select value={selectedStage} onChange={e => setSelectedStage(e.target.value)}>
-                                {ISLANDS.map(island => (
-                                    <optgroup key={island.id} label={island.name}>
-                                        {island.stages.map(stage => (
-                                            <option key={stage.id} value={stage.id}>
-                                                Stage {stage.id}: {stage.difficulty} - {stage.introduction}
-                                            </option>
-                                        ))}
-                                    </optgroup>
-                                ))}
-                            </select>
-                        </div>
-                        <div className="form-group" style={{ flex: 1 }}>
-                            <label>Difficulty:</label>
-                            <select value={difficultyIndex} onChange={e => setDifficultyIndex(parseInt(e.target.value))}>
-                                {DIFFICULTY_LEVELS.map((level, idx) => (
-                                    <option key={idx} value={idx}>{level}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
+                    <StageSelector 
+                        selectedStage={selectedStage} setSelectedStage={setSelectedStage}
+                        difficultyIndex={difficultyIndex} setDifficultyIndex={setDifficultyIndex}
+                        showDifficulty={true}
+                    />
                 </div>
             )}
 
