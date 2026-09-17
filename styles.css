@@ -189,6 +189,7 @@ button:disabled {
 /* Stage Info Specific Styles */
 .wave-card { border-left: 4px solid #4CAF50; padding: 10px 15px; background: #f9f9f9; margin-bottom: 15px; border-radius: 0 4px 4px 0; border-top: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee; }
 .wave-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 1.1em; margin-bottom: 10px; }
+.wave-details { font-weight: normal; }
 .subwave-table { width: 100%; border-collapse: collapse; }
 .subwave-table th, .subwave-table td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
 .subwave-table th { color: #555; font-weight: bold; }

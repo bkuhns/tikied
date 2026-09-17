@@ -247,7 +247,7 @@ export const StageInfoApp: React.FC<StageInfoAppProps> = ({ archive, pkdFile, on
                                                 : ''}
                                         </span>
                                     </div>
-                                    <span style={{ fontSize: '0.9em' }}>
+                                    <span className="wave-details" style={{ fontSize: '0.9em' }}>
                                         {wave.hpUp !== undefined && <span style={{ marginRight: '15px' }}>HP Multiplier: {wave.hpUp}x</span>}
                                         Coins: 🪙 {wave.coinsTotal} | 
                                         Gems: 💎 {wave.gemsTotal}
@@ -258,7 +258,7 @@ export const StageInfoApp: React.FC<StageInfoAppProps> = ({ archive, pkdFile, on
                                         <tr>
                                             <th>Monster Name</th>
                                             <th>Count</th>
-                                            <th>HP (per monster)</th>
+                                            <th>HP</th>
                                             <th>Route</th>
                                             <th>Start Time (s)</th>
                                             <th>Interval (s)</th>
@@ -315,4 +315,4 @@ export const StageInfoApp: React.FC<StageInfoAppProps> = ({ archive, pkdFile, on
         </div>
     );
 };
-
+
