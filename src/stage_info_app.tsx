@@ -30,7 +30,7 @@ const StageInfoApp: React.FC = () => {
     const [pkiFile, setPkiFile] = useState<File | null>(null);
     const [pkdFile, setPkdFile] = useState<File | null>(null);
     const [archive, setArchive] = useState<PJMArchive | null>(null);
-    const [status, setStatus] = useState<string>('Select PKI and PKD files.');
+    const [status, setStatus] = useState<string>('');
     
     const [selectedStage, setSelectedStage] = useState<string>("11");
     const [difficultyIndex, setDifficultyIndex] = useState<number>(1);
@@ -38,17 +38,18 @@ const StageInfoApp: React.FC = () => {
     const [barIconsUrl, setBarIconsUrl] = useState<string | null>(null);
     const [barIconsSize, setBarIconsSize] = useState<{w: number, h: number} | null>(null);
 
-    // Initialize archive when files are selected
-    useEffect(() => {
-        if (pkiFile && pkdFile) {
-            setStatus('Loading archive...');
-            PJMArchive.parse(pkiFile).then((newArchive) => {
-                setArchive(newArchive);
-                setStatus('Archive loaded.');
-                extractBarIcons(newArchive);
-            }).catch((e: any) => setStatus('Error loading archive: ' + e.message));
+    const handleLoadArchive = () => {
+        if (!pkiFile || !pkdFile) {
+            setStatus('Please select both PKI and PKD files.');
+            return;
         }
-    }, [pkiFile, pkdFile]);
+        setStatus('Loading archive...');
+        PJMArchive.parse(pkiFile).then((newArchive) => {
+            setArchive(newArchive);
+            setStatus('Archive loaded.');
+            extractBarIcons(newArchive);
+        }).catch((e: any) => setStatus('Error loading archive: ' + e.message));
+    };
 
     // Extract Bar Icons
     const extractBarIcons = async (arch: PJMArchive) => {
@@ -177,7 +178,13 @@ const StageInfoApp: React.FC = () => {
                     <label>Original <code>monsters.pkdwin</code>:</label>
                     <input type="file" accept=".pkdwin" onChange={e => setPkdFile(e.target.files?.[0] || null)} />
                 </div>
-                <div id="status" className="status-msg">{status}</div>
+                <button 
+                    onClick={handleLoadArchive} 
+                    disabled={!pkiFile || !pkdFile}
+                >
+                    Load archives
+                </button>
+                {status && <div id="status" className="status-msg">{status}</div>}
             </div>
 
             {archive && (
