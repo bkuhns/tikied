@@ -16,10 +16,10 @@ export class WebGLWaterRenderer {
     public tex2_offset_x = 0.0;
     public tex2_offset_y = 0.0;
 
-    public dx1 = 0.00033;
-    public dy1 = 0.00051;
-    public dx2 = 0.00090;
-    public dy2 = 0.00090;
+    public dx1 = -0.00033;
+    public dy1 = -0.00051;
+    public dx2 = -0.00090;
+    public dy2 = -0.00090;
     
     public r = 0.25;
     public g = 0.36;
