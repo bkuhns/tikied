@@ -275,7 +275,43 @@ document.addEventListener('DOMContentLoaded', () => {
             const dx = inst.x - (drawWidth / 2);
             const dy = inst.y - (drawHeight / 2);
 
+            ctx.save();
             ctx.globalAlpha = inst.alpha ?? 1.0;
+
+            if (inst.type.startsWith("tree_")) {
+                const time = performance.now() / 1000.0;
+                
+                // Deterministic pseudo-random values based on tree position (0.0 to 1.0)
+                const rand1 = Math.abs((Math.sin(inst.x * 12.9898 + inst.y * 78.233) * 43758.5453) % 1.0);
+                const rand2 = Math.abs((Math.cos(inst.x * 4.141 + inst.y * 67.342) * 23145.2413) % 1.0);
+                
+                // Add randomness so trees don't sway in perfect unison
+                const timeOffset = rand1 * Math.PI * 2;
+                
+                // Vary the maximum lean of each tree (e.g. some lean 100%, some lean 40%)
+                const treeStrength = 0.4 + (rand2 * 0.6);
+                
+                // Set the overall animation speed (lower is slower, higher is faster)
+                const speed = 0.75; 
+                
+                // Modified sine function: fast near middle, slow at far ends
+                let baseSway = Math.sin((time * speed) + timeOffset);
+                // Math.tanh smoothly flattens the peaks without creating an infinite derivative at the center
+                // Multiplying baseSway drives it deeper into the flat part of the tanh curve, extending the pause
+                let shapedSway = Math.tanh(baseSway * 2.5);
+                
+                // Apply final amplitude (0.05 is the max skew angle)
+                const swayAngle = shapedSway * 0.05 * treeStrength;
+
+                // Skew anchored at the bottom of the tree
+                const swayAnchorX = inst.x;
+                const swayAnchorY = inst.y + (drawHeight / 2);
+
+                ctx.translate(swayAnchorX, swayAnchorY);
+                // a, b, c, d, e, f => 1, 0, Math.tan(swayAngle), 1, 0, 0
+                ctx.transform(1, 0, Math.tan(swayAngle), 1, 0, 0);
+                ctx.translate(-swayAnchorX, -swayAnchorY);
+            }
 
             if (inst.r >= 0.99 && inst.g >= 0.99 && inst.b >= 0.99) {
                 // Fast path: no tinting needed
@@ -313,8 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ctx.drawImage(scratchCanvas, 0, 0, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
             }
             
-            // Reset alpha
-            ctx.globalAlpha = 1.0;
+            ctx.restore();
         } catch (e: any) {
             console.error("Error drawing sprite:", e);
             statusMsg.textContent = "Error drawing sprite: " + e.message;
