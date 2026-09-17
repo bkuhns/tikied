@@ -5,10 +5,14 @@ import { ArchiveSelector } from './shared_components.js';
 
 declare const pako: any;
 
-const RepackerApp: React.FC = () => {
-    const [pkiFile, setPkiFile] = useState<File | null>(null);
-    const [pkdFile, setPkdFile] = useState<File | null>(null);
-    const [archive, setArchive] = useState<PJMArchive | null>(null);
+interface RepackerAppProps {
+    archive: PJMArchive;
+    pkiFile: File;
+    pkdFile: File;
+    onBack: () => void;
+}
+
+export const RepackerApp: React.FC<RepackerAppProps> = ({ archive, pkiFile, pkdFile, onBack }) => {
     const [modFile, setModFile] = useState<File | null>(null);
     const [targetPath, setTargetPath] = useState<string>("data-common/textures/bgdata/bg/stage11.dds");
     const [status, setStatus] = useState<string>('');
@@ -16,22 +20,6 @@ const RepackerApp: React.FC = () => {
     
     const [finalPkiBlob, setFinalPkiBlob] = useState<Blob | null>(null);
     const [finalPkdBlob, setFinalPkdBlob] = useState<Blob | null>(null);
-
-    const handleLoadArchive = async () => {
-        if (!pkiFile || !pkdFile) {
-            setStatus('Please select both PKI and PKD files.');
-            return;
-        }
-        try {
-            setStatus("Parsing original archives...");
-            const arch = await PJMArchive.parse(pkiFile);
-            setArchive(arch);
-            setStatus("Archives loaded! Select a replacement file.");
-        } catch (e: any) {
-            setStatus("Error: " + e.message);
-            console.error(e);
-        }
-    };
 
     const handleRepack = async () => {
         if (!archive || !pkdFile || !modFile || !targetPath.trim()) return;
@@ -126,72 +114,53 @@ const RepackerApp: React.FC = () => {
     return (
         <div className="container">
             <nav className="breadcrumb">
-                <a href="index.html">← Back to Hub</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); onBack(); }}>← Back to Hub</a>
             </nav>
             <h1>Archive Repacker</h1>
             <p>Modify the game's data archive entirely in your browser without unpacking to your drive.</p>
             
             <div className="section">
-                <h2>1. Original Archives</h2>
-                <ArchiveSelector 
-                    pkiFile={pkiFile} setPkiFile={setPkiFile}
-                    pkdFile={pkdFile} setPkdFile={setPkdFile}
-                    onLoadArchive={handleLoadArchive}
-                    status={status}
-                />
+                <h2>1. Replacement Data</h2>
+                <p>Select a modified file to inject into the repacked archive.</p>
+                <div className="form-group">
+                    <label>Modified File:</label>
+                    <input type="file" onChange={e => setModFile(e.target.files?.[0] || null)} />
+                </div>
+                <div className="form-group">
+                    <label>Target Internal Path:</label>
+                    <input 
+                        type="text" 
+                        value={targetPath} 
+                        onChange={e => setTargetPath(e.target.value)}
+                        style={{ width: '100%' }}
+                    />
+                </div>
             </div>
 
-            {archive && (
-                <>
-                    <div className="section">
-                        <h2>2. Replacement Data</h2>
-                        <p>Select a modified file to inject into the repacked archive.</p>
-                        <div className="form-group">
-                            <label>Modified File:</label>
-                            <input type="file" onChange={e => setModFile(e.target.files?.[0] || null)} />
-                        </div>
-                        <div className="form-group">
-                            <label>Target Internal Path:</label>
-                            <input 
-                                type="text" 
-                                value={targetPath} 
-                                onChange={e => setTargetPath(e.target.value)}
-                                style={{ width: '100%' }}
-                            />
+            <div className="section">
+                <h2>2. Repack & Download</h2>
+                <button 
+                    onClick={handleRepack} 
+                    disabled={!canRepack || isRepacking}
+                >
+                    Repack Archive
+                </button>
+                {status && <div id="status" className="status-msg">{status}</div>}
+                
+                {(finalPkiBlob || finalPkdBlob) && (
+                    <div id="downloadSection" style={{ marginTop: '15px' }}>
+                        <p>Repack successful! Download your files:</p>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button onClick={() => finalPkiBlob && triggerDownload(finalPkiBlob, "monsters.pkiwin")}>
+                                Download monsters.pkiwin
+                            </button>
+                            <button onClick={() => finalPkdBlob && triggerDownload(finalPkdBlob, "monsters.pkdwin")}>
+                                Download monsters.pkdwin
+                            </button>
                         </div>
                     </div>
-
-                    <div className="section">
-                        <h2>3. Repack & Download</h2>
-                        <button 
-                            onClick={handleRepack} 
-                            disabled={!canRepack || isRepacking}
-                        >
-                            Repack Archive
-                        </button>
-                        
-                        {(finalPkiBlob || finalPkdBlob) && (
-                            <div id="downloadSection" style={{ marginTop: '15px' }}>
-                                <p>Repack successful! Download your files:</p>
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button onClick={() => finalPkiBlob && triggerDownload(finalPkiBlob, "monsters.pkiwin")}>
-                                        Download monsters.pkiwin
-                                    </button>
-                                    <button onClick={() => finalPkdBlob && triggerDownload(finalPkdBlob, "monsters.pkdwin")}>
-                                        Download monsters.pkdwin
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </>
-            )}
+                )}
+            </div>
         </div>
     );
 };
-
-const rootEl = document.getElementById('root');
-if (rootEl) {
-    const root = createRoot(rootEl);
-    root.render(<RepackerApp />);
-}

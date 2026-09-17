@@ -6,12 +6,16 @@ import { ISLANDS } from './stages_data.js';
 import { StageParser, StageSettings, WaveInfo } from './stage_parser.js';
 import { RoutesRenderer } from './routes_renderer.js';
 
-import { ArchiveSelector, StageSelector, DIFFICULTY_LEVELS, DIFFICULTY_DATA } from './shared_components.js';
+import { StageSelector, DIFFICULTY_LEVELS, DIFFICULTY_DATA } from './shared_components.js';
 
-const StageInfoApp: React.FC = () => {
-    const [pkiFile, setPkiFile] = useState<File | null>(null);
-    const [pkdFile, setPkdFile] = useState<File | null>(null);
-    const [archive, setArchive] = useState<PJMArchive | null>(null);
+interface StageInfoAppProps {
+    archive: PJMArchive;
+    pkiFile: File;
+    pkdFile: File;
+    onBack: () => void;
+}
+
+export const StageInfoApp: React.FC<StageInfoAppProps> = ({ archive, pkdFile, onBack }) => {
     const [status, setStatus] = useState<string>('');
     
     const [selectedStage, setSelectedStage] = useState<string>("11");
@@ -20,39 +24,30 @@ const StageInfoApp: React.FC = () => {
     const [barIconsUrl, setBarIconsUrl] = useState<string | null>(null);
     const [barIconsSize, setBarIconsSize] = useState<{w: number, h: number} | null>(null);
 
-    const handleLoadArchive = () => {
-        if (!pkiFile || !pkdFile) {
-            setStatus('Please select both PKI and PKD files.');
-            return;
-        }
-        setStatus('Loading archive...');
-        PJMArchive.parse(pkiFile).then((newArchive) => {
-            setArchive(newArchive);
-            setStatus('Archive loaded.');
-            extractBarIcons(newArchive);
-        }).catch((e: any) => setStatus('Error loading archive: ' + e.message));
-    };
-
     // Extract Bar Icons
     const extractBarIcons = async (arch: PJMArchive) => {
         try {
-            const bytes = await arch.extractFile(pkdFile!, 'data-common/textures/frontend/shared/baricons.dds');
+            const bytes = await arch.extractFile(pkdFile, "data-common/textures/frontend/shared/baricons.dds");
             if (bytes) {
-                const imgData = DDSDecoder.decodeToImageData(bytes, true);
+                const imgData = DDSDecoder.decodeToImageData(bytes, true); // true = flipVert
+                
                 const canvas = document.createElement('canvas');
                 canvas.width = imgData.width;
                 canvas.height = imgData.height;
                 const ctx = canvas.getContext('2d');
-                if (ctx) {
-                    ctx.putImageData(imgData, 0, 0);
-                    setBarIconsUrl(canvas.toDataURL());
-                    setBarIconsSize({ w: imgData.width, h: imgData.height });
-                }
+                ctx?.putImageData(imgData, 0, 0);
+                
+                setBarIconsSize({w: imgData.width, h: imgData.height});
+                setBarIconsUrl(canvas.toDataURL());
             }
-        } catch (e) {
-            console.error("Failed to extract bar icons", e);
+        } catch (e: any) {
+            console.error("Failed to extract bar icons:", e);
         }
     };
+
+    useEffect(() => {
+        if (archive) extractBarIcons(archive);
+    }, [archive]);
 
     // Load Stage Data
     useEffect(() => {
@@ -145,31 +140,19 @@ const StageInfoApp: React.FC = () => {
     return (
         <div className="container">
             <nav className="breadcrumb">
-                <a href="index.html">← Back to Hub</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); onBack(); }}>← Back to Hub</a>
             </nav>
             <h1>Stage Info</h1>
             <p>View enemy waves and stage settings.</p>
-            
+
             <div className="section">
-                <h2>1. Select Game Archives</h2>
-                <ArchiveSelector 
-                    pkiFile={pkiFile} setPkiFile={setPkiFile}
-                    pkdFile={pkdFile} setPkdFile={setPkdFile}
-                    onLoadArchive={handleLoadArchive}
-                    status={status}
+                <h2>2. Select Stage</h2>
+                <StageSelector 
+                    selectedStage={selectedStage} setSelectedStage={setSelectedStage}
+                    difficultyIndex={difficultyIndex} setDifficultyIndex={setDifficultyIndex}
+                    showDifficulty={true}
                 />
             </div>
-
-            {archive && (
-                <div className="section">
-                    <h2>2. Select Stage</h2>
-                    <StageSelector 
-                        selectedStage={selectedStage} setSelectedStage={setSelectedStage}
-                        difficultyIndex={difficultyIndex} setDifficultyIndex={setDifficultyIndex}
-                        showDifficulty={true}
-                    />
-                </div>
-            )}
 
             {stageSettings && (
                 <>
@@ -323,9 +306,4 @@ const StageInfoApp: React.FC = () => {
         </div>
     );
 };
-
-const rootEl = document.getElementById('root');
-if (rootEl) {
-    const root = createRoot(rootEl);
-    root.render(<StageInfoApp />);
-}
+

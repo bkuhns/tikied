@@ -237,10 +237,14 @@ function drawSprite(ctx: CanvasRenderingContext2D, inst: SpriteInstance) {
     }
 }
 
-const StageViewerApp: React.FC = () => {
-    const [pkiFile, setPkiFile] = useState<File | null>(null);
-    const [pkdFile, setPkdFile] = useState<File | null>(null);
-    const [archive, setArchive] = useState<PJMArchive | null>(null);
+interface StageViewerAppProps {
+    archive: PJMArchive;
+    pkiFile: File;
+    pkdFile: File;
+    onBack: () => void;
+}
+
+export const StageViewerApp: React.FC<StageViewerAppProps> = ({ archive, pkdFile, onBack }) => {
     const [status, setStatus] = useState<string>('');
     const [selectedStage, setSelectedStage] = useState<string>("11");
     const [isMaximized, setIsMaximized] = useState<boolean>(false);
@@ -284,31 +288,26 @@ const StageViewerApp: React.FC = () => {
         }
     }, [routeToggles]);
 
-    const handleLoadArchive = async () => {
-        if (!pkiFile || !pkdFile) {
-            setStatus('Please select both PKI and PKD files.');
-            return;
-        }
-        try {
-            setStatus("Loading archives...");
-            const arch = await PJMArchive.parse(pkiFile);
-            setArchive(arch);
-            
-            // Extract water shader and initialize
-            setStatus("Extracting shader...");
-            const shaderBytes = await arch.extractFile(pkdFile, "shaders/ps_2dwater.hlsl");
-            if (shaderBytes) {
-                const hlslSource = new TextDecoder().decode(shaderBytes);
-                webglWaterRenderer.initShaders(hlslSource);
-            }
+    useEffect(() => {
+        if (!archive) return;
 
-            setStatus("Archives loaded! Select a stage to view.");
-            setIsMaximized(true);
-        } catch (e: any) {
-            setStatus("Error: " + e.message);
-            console.error(e);
-        }
-    };
+        const initShader = async () => {
+            try {
+                setStatus("Extracting shader...");
+                const shaderBytes = await archive.extractFile(pkdFile, "shaders/ps_2dwater.hlsl");
+                if (shaderBytes) {
+                    const hlslSource = new TextDecoder().decode(shaderBytes);
+                    webglWaterRenderer.initShaders(hlslSource);
+                }
+                setStatus("Archive and shader loaded.");
+            } catch (e: any) {
+                setStatus("Error initializing shader: " + e.message);
+                console.error(e);
+            }
+        };
+
+        initShader();
+    }, [archive, pkdFile]);
 
     // Render loop
     useEffect(() => {
@@ -546,29 +545,18 @@ const StageViewerApp: React.FC = () => {
     return (
         <div className="container">
             <nav className="breadcrumb">
-                <a href="index.html">← Back to Hub</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); onBack(); }}>← Back to Hub</a>
             </nav>
             <h1>Stage Viewer</h1>
             <p>Instantly extract and view stages directly from the game archives.</p>
             
-            <div className="section">
-                <h2>1. Select Game Archives</h2>
-                <ArchiveSelector 
-                    pkiFile={pkiFile} setPkiFile={setPkiFile}
-                    pkdFile={pkdFile} setPkdFile={setPkdFile}
-                    onLoadArchive={handleLoadArchive}
-                    status={status}
-                />
-            </div>
-
-            {archive && (
-                <div id="viewerSection" className={`section ${isMaximized ? 'maximized' : ''}`}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                        <h2 style={{ marginBottom: 0 }}>2. View Stage</h2>
-                        <button onClick={() => setIsMaximized(!isMaximized)} style={{ padding: '5px 10px', fontSize: '0.9rem' }}>
-                            {isMaximized ? 'Minimize View' : 'Maximize View'}
-                        </button>
-                    </div>
+            <div id="viewerSection" className={`section ${isMaximized ? 'maximized' : ''}`}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                    <h2 style={{ marginBottom: 0 }}>View Stage</h2>
+                    <button onClick={() => setIsMaximized(!isMaximized)} style={{ padding: '5px 10px', fontSize: '0.9rem' }}>
+                        {isMaximized ? 'Minimize View' : 'Maximize View'}
+                    </button>
+                </div>
 
                     <StageSelector 
                         selectedStage={selectedStage} setSelectedStage={setSelectedStage}
@@ -629,14 +617,7 @@ const StageViewerApp: React.FC = () => {
                         <canvas ref={canvasRef} id="stageCanvas"></canvas>
                     </div>
                 </div>
-            )}
         </div>
     );
 };
-
-const rootEl = document.getElementById('root');
-if (rootEl) {
-    const root = createRoot(rootEl);
-    root.render(<StageViewerApp />);
-}
 

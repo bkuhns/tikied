@@ -5,32 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Experiments with PixelJunk Monsters Ultimate</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Pako for ZLIB compression/decompression -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <!-- Import Map for React -->
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime"
+      }
+    }
+    </script>
+    <script type="module" src="dist/main_app.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Experiments with PixelJunk Monsters Ultimate</h1>
-        <p class="intro">
-            Welcome! This is a suite of browser-based "experiements", working towards a full web-based level editor for <strong>PixelJunk Monsters Ultimate</strong> on PC. Each
-            experiment works directly off your own copy of the game's <code>.pkiwin</code>/<code>.pkdwin</code> files.
-        </p>
-        
-        <h2>Available Experiments</h2>
-        <div class="poc-grid">
-            <a href="stage_info.html" class="poc-card">
-                <h3>Stage Info</h3>
-                <p>View info about a stage's waves and coin/gem payouts.</p>
-            </a>
-
-            <a href="stage_viewer.html" class="poc-card">
-                <h3>Stage Viewer</h3>
-                <p>Interactive viewer for rendering game stages, routes, and object placement.</p>
-            </a>
-
-            <a href="repacker.html" class="poc-card">
-                <h3>Archive Repacker</h3>
-                <p>Load and repack game archives. Allows injecting modified assets.</p>
-            </a>
-        </div>
-    </div>
+    <div id="root"></div>
 </body>
 </html>
