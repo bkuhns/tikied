@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "license": "AGPL-3.0-only",
   "scripts": {
     "build": "webpack --mode production && node copy_assets.js",
     "build:dev": "webpack --mode development && node copy_assets.js",
