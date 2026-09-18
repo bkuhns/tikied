@@ -1,4 +1,4 @@
-import React, { useState, useId } from 'react';
+import React, { useState, useId, useEffect } from 'react';
 import { ISLANDS, StageInfo } from './stages_data.js';
 import { StageSelection, DIFFICULTY_LEVELS } from './shared_components.js';
 import { GameDataGateway } from './editor_api.js';
@@ -29,11 +29,28 @@ interface StageInspectorAppProps {
     archive: PJMArchive;
     pkiFile: File;
     pkdFile: File;
+    initialStage?: StageInfo | null;
     onBackToSplash: () => void;
 }
 
-export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, archive, pkiFile, pkdFile, onBackToSplash }) => {
-    const [selectedStage, setSelectedStage] = useState<StageInfo>(ISLANDS[0].stages.find(s => s.id === 11) || ISLANDS[0].stages[0]);
+export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ 
+    gateway, 
+    archive, 
+    pkiFile, 
+    pkdFile, 
+    initialStage,
+    onBackToSplash 
+}) => {
+    const [selectedStage, setSelectedStage] = useState<StageInfo>(
+        initialStage || ISLANDS[0].stages.find(s => s.id === 11) || ISLANDS[0].stages[0]
+    );
+
+    useEffect(() => {
+        if (initialStage) {
+            setSelectedStage(initialStage);
+        }
+    }, [initialStage]);
+
     const [difficultyIndex, setDifficultyIndex] = useState<number>(1);
     const [isRepackerOpen, setIsRepackerOpen] = useState(false);
     

@@ -140,11 +140,31 @@ export const ArchiveSelector: React.FC<ArchiveSelectorProps> = ({ pkiFile, setPk
 interface StageSelectionProps {
     gateway: GameDataGateway;
     onSelectStage: (stage: StageInfo) => void;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    hideTrigger?: boolean;
 }
 
-export const StageSelection: React.FC<StageSelectionProps> = ({ gateway, onSelectStage }) => {
-    const [isOpen, setIsOpen] = useState(false);
+export const StageSelection: React.FC<StageSelectionProps> = ({ 
+    gateway, 
+    onSelectStage, 
+    open: externalOpen, 
+    onOpenChange: externalOnOpenChange,
+    hideTrigger = false
+}) => {
+    const [internalOpen, setInternalOpen] = useState(false);
     const [thumbnailsUrl, setThumbnailsUrl] = useState<string | null>(null);
+
+    const isControlled = externalOpen !== undefined;
+    const isOpen = isControlled ? externalOpen : internalOpen;
+
+    const handleOpenChange = (newOpen: boolean) => {
+        if (isControlled) {
+            externalOnOpenChange?.(newOpen);
+        } else {
+            setInternalOpen(newOpen);
+        }
+    };
 
     useEffect(() => {
         if (!gateway || !isOpen || thumbnailsUrl) return;
@@ -204,41 +224,55 @@ export const StageSelection: React.FC<StageSelectionProps> = ({ gateway, onSelec
         };
     };
 
+    const dialogContent = (
+        <DialogBody>
+            <DialogTitle>Select Stage</DialogTitle>
+            <DialogContent style={{ maxHeight: '65vh', overflowY: 'auto', marginTop: '10px' }}>
+                {ISLANDS.map(island => (
+                    <div key={island.id} style={{ marginBottom: '20px' }}>
+                        <h3 style={{ borderBottom: '2px solid var(--neutral-stroke-2, #BEB28E)', paddingBottom: '5px' }}>{island.name}</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                            {island.stages.map(stage => (
+                                <div 
+                                    key={stage.id} 
+                                    className="stage-row"
+                                    onClick={() => {
+                                        onSelectStage(stage);
+                                        handleOpenChange(false);
+                                    }}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <div style={getThumbnailStyle(stage.id)}></div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                        <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>{stage.difficulty}</div>
+                                        <div style={{ fontSize: '1.1em', color: 'var(--neutral-fg-subtle, #523C2A)' }}>{stage.introduction}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </DialogContent>
+        </DialogBody>
+    );
+
+    if (hideTrigger) {
+        return (
+            <Dialog open={isOpen} onOpenChange={(_, data) => handleOpenChange(data.open)}>
+                <DialogSurface style={{ maxWidth: '800px', width: '90vw' }}>
+                    {dialogContent}
+                </DialogSurface>
+            </Dialog>
+        );
+    }
+
     return (
-        <Dialog open={isOpen} onOpenChange={(_, data) => setIsOpen(data.open)}>
+        <Dialog open={isOpen} onOpenChange={(_, data) => handleOpenChange(data.open)}>
             <DialogTrigger disableButtonEnhancement>
-                <Button onClick={() => setIsOpen(true)}>Select Stage</Button>
+                <Button onClick={() => handleOpenChange(true)}>Select Stage</Button>
             </DialogTrigger>
             <DialogSurface style={{ maxWidth: '800px', width: '90vw' }}>
-                <DialogBody>
-                    <DialogTitle>Select Stage</DialogTitle>
-                    <DialogContent style={{ maxHeight: '65vh', overflowY: 'auto', marginTop: '10px' }}>
-                        {ISLANDS.map(island => (
-                            <div key={island.id} style={{ marginBottom: '20px' }}>
-                                <h3 style={{ borderBottom: '2px solid var(--neutral-stroke-2, #BEB28E)', paddingBottom: '5px' }}>{island.name}</h3>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                    {island.stages.map(stage => (
-                                        <div 
-                                            key={stage.id} 
-                                            className="stage-row"
-                                            onClick={() => {
-                                                onSelectStage(stage);
-                                                setIsOpen(false);
-                                            }}
-                                            style={{ cursor: 'pointer' }}
-                                        >
-                                            <div style={getThumbnailStyle(stage.id)}></div>
-                                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                                <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>{stage.difficulty}</div>
-                                                <div style={{ fontSize: '1.1em', color: 'var(--neutral-fg-subtle, #523C2A)' }}>{stage.introduction}</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </DialogContent>
-                </DialogBody>
+                {dialogContent}
             </DialogSurface>
         </Dialog>
     );

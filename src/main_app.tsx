@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PJMArchive } from './pjm_archive.js';
-import { ArchiveSelector } from './shared_components.js';
+import { ArchiveSelector, StageSelection } from './shared_components.js';
+import { StageInfo, ISLANDS } from './stages_data.js';
 import { PJMArchiveGateway, GameDataGateway } from './editor_api.js';
 import { StageInspectorApp } from './stage_inspector_app.js';
 import { 
@@ -21,6 +22,8 @@ const MainApp: React.FC = () => {
     const [pkiFile, setPkiFile] = useState<File | null>(null);
     const [pkdFile, setPkdFile] = useState<File | null>(null);
     const [archive, setArchive] = useState<PJMArchive | null>(null);
+    const [selectedStage, setSelectedStage] = useState<StageInfo | null>(null);
+    const [isStageSelectOpen, setIsStageSelectOpen] = useState(false);
     const [currentView, setCurrentView] = useState<ViewState>('splash');
 
     const toasterId = useId();
@@ -50,11 +53,11 @@ const MainApp: React.FC = () => {
             dispatchToast(
                 <Toast>
                     <ToastTitle>Success</ToastTitle>
-                    <ToastBody>Archives loaded successfully!</ToastBody>
+                    <ToastBody>Archives loaded! Please select a stage.</ToastBody>
                 </Toast>,
                 { intent: "success" }
             );
-            setCurrentView('inspector'); // Auto-transition
+            setIsStageSelectOpen(true); // Open stage selection popup
         } catch (e: any) {
             dispatchToast(
                 <Toast>
@@ -67,6 +70,12 @@ const MainApp: React.FC = () => {
         }
     };
 
+    const handleSelectStageFromSplash = (stage: StageInfo) => {
+        setSelectedStage(stage);
+        setIsStageSelectOpen(false);
+        setCurrentView('inspector');
+    };
+
     if (currentView === 'inspector' && gateway && archive && pkdFile && pkiFile) {
         return (
             <StageInspectorApp 
@@ -74,10 +83,13 @@ const MainApp: React.FC = () => {
                 archive={archive}
                 pkiFile={pkiFile}
                 pkdFile={pkdFile}
+                initialStage={selectedStage}
                 onBackToSplash={() => {
                     setArchive(null);
                     setPkiFile(null);
                     setPkdFile(null);
+                    setSelectedStage(null);
+                    setIsStageSelectOpen(false);
                     setCurrentView('splash');
                 }} 
             />
@@ -124,6 +136,16 @@ const MainApp: React.FC = () => {
                     />
                 </div>
             </div>
+
+            {gateway && (
+                <StageSelection 
+                    gateway={gateway}
+                    open={isStageSelectOpen}
+                    onOpenChange={setIsStageSelectOpen}
+                    onSelectStage={handleSelectStageFromSplash}
+                    hideTrigger
+                />
+            )}
             
             <footer style={{
                 maxWidth: '800px',
