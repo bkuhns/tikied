@@ -98,11 +98,13 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, a
                 borderBottom: `1px solid ${tikiedTheme.colorNeutralStroke1}`,
                 flexShrink: 0
             }}>
-                <Button onClick={onBackToSplash}>Load archives</Button>
+                <Button appearance="primary" onClick={onBackToSplash}>← Load archives</Button>
                 
                 <div style={{ flex: 1 }} />
                 
+                {/* Hide the repack button for now 
                 <Button appearance="primary" onClick={() => setIsRepackerOpen(true)}>Repack Assets</Button>
+                */}
             </header>
 
             {/* Main Application Body */}

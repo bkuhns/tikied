@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ISLANDS, StageInfo } from './stages_data.js';
 import { GameDataGateway } from './editor_api.js';
 import { 
@@ -10,6 +10,7 @@ import {
     DialogBody, 
     DialogContent 
 } from '@fluentui/react-components';
+import { DismissSquareRegular, CheckmarkSquareFilled, FolderOpenRegular } from '@fluentui/react-icons';
 
 export const DIFFICULTY_LEVELS = ["Casual", "Regular", "Hardcore"];
 
@@ -37,10 +38,11 @@ interface ArchiveSelectorProps {
     pkdFile: File | null;
     setPkdFile: (file: File | null) => void;
     onLoadArchive: (pki: File, pkd: File) => void;
-    status: string;
 }
 
-export const ArchiveSelector: React.FC<ArchiveSelectorProps> = ({ pkiFile, setPkiFile, pkdFile, setPkdFile, onLoadArchive, status }) => {
+export const ArchiveSelector: React.FC<ArchiveSelectorProps> = ({ pkiFile, setPkiFile, pkdFile, setPkdFile, onLoadArchive }) => {
+    const [isHovered, setIsHovered] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
@@ -63,34 +65,74 @@ export const ArchiveSelector: React.FC<ArchiveSelectorProps> = ({ pkiFile, setPk
     };
     
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div>
-                <label style={{
-                    display: 'inline-block',
-                    padding: '8px 16px',
-                    backgroundColor: 'var(--brand-primary, #6BB338)',
-                    color: 'white',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold'
-                }}>
-                    Select Game Archives (monsters.pkiwin & monsters.pkdwin)
-                    <input 
-                        type="file" 
-                        accept=".pkiwin,.pkdwin" 
-                        multiple 
-                        onChange={handleFileChange} 
-                        style={{ display: 'none' }}
-                    />
-                </label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
+            <div style={{ textAlign: 'center' }}>
+                <Button 
+                    appearance="primary"
+                    size="large"
+                    icon={<FolderOpenRegular />}
+                    onClick={() => fileInputRef.current?.click()}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                    style={{
+                        padding: '12px 24px',
+                        backgroundColor: isHovered ? 'var(--brand-primary, #6BB338)' : '#234C13',
+                        color: 'white',
+                        fontSize: '1.5rem',
+                        height: 'auto',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.2s ease',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                    }}
+                >
+                    Select Game Archives
+                </Button>
+
+                <input 
+                    ref={fileInputRef}
+                    type="file" 
+                    accept=".pkiwin,.pkdwin" 
+                    multiple 
+                    onChange={handleFileChange} 
+                    style={{ display: 'none' }}
+                />
+                
+                <div style={{ fontSize: '0.85rem', color: 'var(--neutral-fg-subtle, #523C2A)', marginTop: '6px', opacity: 0.85 }}>
+                    (monsters.pkiwin &amp; monsters.pkdwin)
+                </div>
             </div>
             
-            <div style={{ fontSize: '0.9em', color: 'var(--neutral-fg-subtle, #523C2A)' }}>
-                <div><strong>PKI:</strong> {pkiFile ? pkiFile.name : 'Not selected'}</div>
-                <div><strong>PKD:</strong> {pkdFile ? pkdFile.name : 'Not selected'}</div>
-            </div>
+            <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '24px', 
+                fontSize: '0.95em', 
+                color: 'var(--neutral-fg-subtle, #523C2A)',
+                marginTop: '4px'
+            }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    <strong>PKI:</strong>
+                    {pkiFile ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            <CheckmarkSquareFilled style={{ color: 'var(--brand-primary, #6BB338)', fontSize: '1.2em' }} />
+                        </div>
+                    ) : (
+                        <DismissSquareRegular style={{ color: 'var(--neutral-fg-subtle, #523C2A)', fontSize: '1.2em', opacity: 0.6 }} />
+                    )}
+                </div>
 
-            {status && <div id="status" className="status-msg">{status}</div>}
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    <strong>PKD:</strong>
+                    {pkdFile ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                            <CheckmarkSquareFilled style={{ color: 'var(--brand-primary, #6BB338)', fontSize: '1.2em' }} />
+                        </div>
+                    ) : (
+                        <DismissSquareRegular style={{ color: 'var(--neutral-fg-subtle, #523C2A)', fontSize: '1.2em', opacity: 0.6 }} />
+                    )}
+                </div>
+            </div>
         </div>
     );
 };
@@ -165,7 +207,7 @@ export const StageSelection: React.FC<StageSelectionProps> = ({ gateway, onSelec
     return (
         <Dialog open={isOpen} onOpenChange={(_, data) => setIsOpen(data.open)}>
             <DialogTrigger disableButtonEnhancement>
-                <Button appearance="primary" onClick={() => setIsOpen(true)}>Select Stage</Button>
+                <Button onClick={() => setIsOpen(true)}>Select Stage</Button>
             </DialogTrigger>
             <DialogSurface style={{ maxWidth: '800px', width: '90vw' }}>
                 <DialogBody>

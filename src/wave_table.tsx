@@ -82,7 +82,7 @@ export const WaveTable: React.FC<WaveTableProps> = ({ stageId, islandName, diffi
     return (
         <div>
             <div className="section">
-                <h2>3. Difficulty Modifiers</h2>
+                <h2>Difficulty Modifiers</h2>
                 <ul style={{ listStyle: 'none', padding: 0 }}>
                     <li><strong>Boss HP Multiplier:</strong> {bossMultiplier.toFixed(2)}x</li>
                     <li><strong>Monster HP Multiplier:</strong> {hpMultiplier.toFixed(2)}x</li>
@@ -90,7 +90,7 @@ export const WaveTable: React.FC<WaveTableProps> = ({ stageId, islandName, diffi
                 </ul>
             </div>
             <div className="section">
-                <h2>4. Stage Totals & Settings</h2>
+                <h2>Stage Totals & Settings</h2>
                 <div style={{ display: 'flex', gap: '40px' }}>
                     <ul style={{ listStyle: 'none', padding: 0 }}>
                         <li><strong>Grand Total Coins:</strong> 🪙 {totalCoins}</li>
@@ -105,7 +105,7 @@ export const WaveTable: React.FC<WaveTableProps> = ({ stageId, islandName, diffi
             </div>
 
             <div className="section">
-                <h2>5. Waves ({stageSettings.waves.length})</h2>
+                <h2>Waves ({stageSettings.waves.length})</h2>
                 {stageSettings.waves.map((wave, i) => {
                     const firstMonster = wave.subWaves[0]?.monster;
                     
@@ -164,7 +164,7 @@ export const WaveTable: React.FC<WaveTableProps> = ({ stageId, islandName, diffi
                             <table className="subwave-table">
                                 <thead>
                                     <tr>
-                                        <th>Monster Name</th>
+                                        <th>Monster</th>
                                         <th>Count</th>
                                         <th>HP</th>
                                         <th>Route</th>
