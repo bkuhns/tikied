@@ -68,7 +68,7 @@ export const ArchiveSelector: React.FC<ArchiveSelectorProps> = ({ pkiFile, setPk
                 <label style={{
                     display: 'inline-block',
                     padding: '8px 16px',
-                    backgroundColor: '#007BFF',
+                    backgroundColor: 'var(--brand-primary, #6BB338)',
                     color: 'white',
                     borderRadius: '4px',
                     cursor: 'pointer',
@@ -85,7 +85,7 @@ export const ArchiveSelector: React.FC<ArchiveSelectorProps> = ({ pkiFile, setPk
                 </label>
             </div>
             
-            <div style={{ fontSize: '0.9em', color: '#555' }}>
+            <div style={{ fontSize: '0.9em', color: 'var(--neutral-fg-subtle, #523C2A)' }}>
                 <div><strong>PKI:</strong> {pkiFile ? pkiFile.name : 'Not selected'}</div>
                 <div><strong>PKD:</strong> {pkdFile ? pkdFile.name : 'Not selected'}</div>
             </div>
@@ -137,7 +137,7 @@ export const StageSelection: React.FC<StageSelectionProps> = ({ gateway, onSelec
         if (!thumbnailsUrl) {
             return {
                 width: '192.5px', height: '97.5px',
-                backgroundColor: '#eee',
+                backgroundColor: 'var(--neutral-bg-surface, #E3DCBE)',
                 display: 'inline-block'
             };
         }
@@ -157,7 +157,7 @@ export const StageSelection: React.FC<StageSelectionProps> = ({ gateway, onSelec
             backgroundPosition: `${posX}px ${posY}px`,
             display: 'inline-block',
             flexShrink: 0,
-            border: '2px solid #ccc',
+            border: '2px solid var(--neutral-stroke-1, #D2C8A8)',
             borderRadius: '4px'
         };
     };
@@ -173,7 +173,7 @@ export const StageSelection: React.FC<StageSelectionProps> = ({ gateway, onSelec
                     <DialogContent style={{ maxHeight: '65vh', overflowY: 'auto', marginTop: '10px' }}>
                         {ISLANDS.map(island => (
                             <div key={island.id} style={{ marginBottom: '20px' }}>
-                                <h3 style={{ borderBottom: '2px solid #666', paddingBottom: '5px' }}>{island.name}</h3>
+                                <h3 style={{ borderBottom: '2px solid var(--neutral-stroke-2, #BEB28E)', paddingBottom: '5px' }}>{island.name}</h3>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                                     {island.stages.map(stage => (
                                         <div 
@@ -188,7 +188,7 @@ export const StageSelection: React.FC<StageSelectionProps> = ({ gateway, onSelec
                                             <div style={getThumbnailStyle(stage.id)}></div>
                                             <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                                                 <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>{stage.difficulty}</div>
-                                                <div style={{ fontSize: '1.1em', color: '#555' }}>{stage.introduction}</div>
+                                                <div style={{ fontSize: '1.1em', color: 'var(--neutral-fg-subtle, #523C2A)' }}>{stage.introduction}</div>
                                             </div>
                                         </div>
                                     ))}

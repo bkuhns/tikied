@@ -103,8 +103,15 @@ const MainApp: React.FC = () => {
     );
 };
 
+import { FluentProvider } from '@fluentui/react-components';
+import { tikiedTheme } from './theme.js';
+
 const rootEl = document.getElementById('root');
 if (rootEl) {
     const root = createRoot(rootEl);
-    root.render(<MainApp />);
+    root.render(
+        <FluentProvider theme={tikiedTheme}>
+            <MainApp />
+        </FluentProvider>
+    );
 }

@@ -5,9 +5,9 @@ import { GameDataGateway } from './editor_api.js';
 import { StageCanvasViewer, ViewerToggles, RouteToggle } from './stage_canvas_viewer.js';
 import { RouteTogglePanel } from './route_toggle_panel.js';
 import { WaveTable } from './wave_table.js';
+import { tikiedTheme } from './theme.js';
 import { 
     FluentProvider, 
-    webLightTheme, 
     Button, 
     Menu, 
     MenuTrigger, 
@@ -80,7 +80,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, o
     };
 
     return (
-        <FluentProvider theme={webLightTheme} style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <FluentProvider theme={tikiedTheme} style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Toaster toasterId={toasterId} position="bottom-start" />
             {/* Top Toolbar */}
             <header style={{ 
@@ -88,8 +88,8 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, o
                 alignItems: 'center', 
                 gap: '15px', 
                 padding: '10px 20px', 
-                backgroundColor: '#f5f5f5', 
-                borderBottom: '1px solid #e0e0e0',
+                backgroundColor: tikiedTheme.colorNeutralBackground2, 
+                borderBottom: `1px solid ${tikiedTheme.colorNeutralStroke1}`,
                 flexShrink: 0
             }}>
                 <Button onClick={onBack}>← Back to Hub</Button>
@@ -154,8 +154,13 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, o
                 {/* Main Area: Vertical Stack (Stage Title, Viewer, Routes View) */}
                 <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: '#111' }}>
                     {/* 1. Stage Title */}
-                    <div style={{ padding: '12px 20px', backgroundColor: '#fff', borderBottom: '1px solid #e0e0e0', flexShrink: 0 }}>
-                        <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: '#333' }}>
+                    <div style={{ 
+                        padding: '12px 20px', 
+                        backgroundColor: tikiedTheme.colorNeutralBackground1, 
+                        borderBottom: `1px solid ${tikiedTheme.colorNeutralStroke1}`, 
+                        flexShrink: 0 
+                    }}>
+                        <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: tikiedTheme.colorNeutralForeground1 }}>
                             Stage {selectedStage.id}: {selectedStage.difficulty} - {selectedStage.introduction}
                         </h2>
                     </div>
@@ -189,13 +194,12 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, o
                     </div>
                 </main>
 
-                {/* Right Sidebar: Wave Info (Fills vertical height) */}
+                {/* Right Sidebar: Wave Info (Fills vertical height, flexible width) */}
                 <aside style={{ 
-                    width: '420px', 
                     display: 'flex', 
                     flexDirection: 'column', 
-                    borderLeft: '1px solid #e0e0e0', 
-                    backgroundColor: '#fff',
+                    borderLeft: `1px solid ${tikiedTheme.colorNeutralStroke1}`, 
+                    backgroundColor: tikiedTheme.colorNeutralBackground1,
                     overflowY: 'auto',
                     padding: '15px'
                 }}>
