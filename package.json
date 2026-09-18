@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc && node copy_assets.js"
+    "build": "webpack --mode production && node copy_assets.js",
+    "build:dev": "webpack --mode development && node copy_assets.js",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "type": "module",
@@ -13,7 +15,12 @@
     "@types/pako": "^2.0.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "typescript": "^7.0.2"
+    "esbuild": "^0.28.2",
+    "esbuild-loader": "^4.5.0",
+    "ts-loader": "^9.6.2",
+    "typescript": "^7.0.2",
+    "webpack": "^5.111.1",
+    "webpack-cli": "^7.2.3"
   },
   "dependencies": {
     "@fluentui/react-icons": "^2.0.341"
