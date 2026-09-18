@@ -23,6 +23,7 @@ import {
     ToastTitle,
     ToastBody
 } from '@fluentui/react-components';
+import { MultiselectLtrRegular, GaugeRegular } from '@fluentui/react-icons';
 
 interface StageInspectorAppProps {
     gateway: GameDataGateway;
@@ -149,7 +150,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
 
                         <Menu closeOnScroll>
                             <MenuTrigger disableButtonEnhancement>
-                                <Button>View Features ▾</Button>
+                                <Button icon={<MultiselectLtrRegular />}>View Features ▾</Button>
                             </MenuTrigger>
                             <MenuPopover>
                                 <MenuList>
@@ -220,7 +221,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                     <div style={{ marginBottom: '15px' }}>
                         <Menu closeOnScroll>
                             <MenuTrigger disableButtonEnhancement>
-                                <Button style={{ width: '100%' }}>Difficulty: {DIFFICULTY_LEVELS[difficultyIndex]} ▾</Button>
+                                <Button icon={<GaugeRegular />} style={{ width: '100%' }}>Difficulty: {DIFFICULTY_LEVELS[difficultyIndex]} ▾</Button>
                             </MenuTrigger>
                             <MenuPopover>
                                 <MenuList>

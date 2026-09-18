@@ -10,7 +10,7 @@ import {
     DialogBody, 
     DialogContent 
 } from '@fluentui/react-components';
-import { DismissSquareRegular, CheckmarkSquareFilled, FolderOpenRegular } from '@fluentui/react-icons';
+import { DismissSquareRegular, CheckmarkSquareFilled, FolderOpenRegular, SlideGridRegular } from '@fluentui/react-icons';
 
 export const DIFFICULTY_LEVELS = ["Casual", "Regular", "Hardcore"];
 
@@ -269,7 +269,7 @@ export const StageSelection: React.FC<StageSelectionProps> = ({
     return (
         <Dialog open={isOpen} onOpenChange={(_, data) => handleOpenChange(data.open)}>
             <DialogTrigger disableButtonEnhancement>
-                <Button onClick={() => handleOpenChange(true)}>Select Stage</Button>
+                <Button onClick={() => handleOpenChange(true)} icon={<SlideGridRegular />}>Select Stage</Button>
             </DialogTrigger>
             <DialogSurface style={{ maxWidth: '800px', width: '90vw' }}>
                 {dialogContent}
