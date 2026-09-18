@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { ISLANDS, StageInfo } from './stages_data.js';
 import { GameDataGateway } from './editor_api.js';
+import { 
+    Button, 
+    Dialog, 
+    DialogTrigger, 
+    DialogSurface, 
+    DialogTitle, 
+    DialogBody, 
+    DialogContent 
+} from '@fluentui/react-components';
 
 export const DIFFICULTY_LEVELS = ["Casual", "Regular", "Hardcore"];
 
@@ -137,15 +146,12 @@ export const StageSelection: React.FC<StageSelectionProps> = ({ gateway, onSelec
         const thumbX = thumb % 5;
         const thumbY = 9 - Math.floor(thumb / 5);
         
-        // Exact pixel positioning to allow cropping
-        // Full width: 192.5 * 5 = 962.5px
-        // Full height: 100 * 10 = 1000px
         const posX = -(thumbX * 192.5);
         const posY = -(thumbY * 100);
 
         return {
             width: '192.5px', 
-            height: '97.5px', // cropped from 100px (5px native)
+            height: '97.5px',
             backgroundImage: `url(${thumbnailsUrl})`,
             backgroundSize: '962.5px 1000px',
             backgroundPosition: `${posX}px ${posY}px`,
@@ -157,45 +163,41 @@ export const StageSelection: React.FC<StageSelectionProps> = ({ gateway, onSelec
     };
 
     return (
-        <>
-            <button onClick={() => setIsOpen(true)}>Select Stage</button>
-
-            {isOpen && (
-                <div className="modal-overlay" onClick={() => setIsOpen(false)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #ccc', paddingBottom: '10px', marginBottom: '20px' }}>
-                            <h2 style={{ margin: 0 }}>Select Stage</h2>
-                            <button onClick={() => setIsOpen(false)}>Close</button>
-                        </div>
-                        
-                        <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-                            {ISLANDS.map(island => (
-                                <div key={island.id} style={{ marginBottom: '20px' }}>
-                                    <h3 style={{ borderBottom: '2px solid #666', paddingBottom: '5px' }}>{island.name}</h3>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                        {island.stages.map(stage => (
-                                            <div 
-                                                key={stage.id} 
-                                                className="stage-row"
-                                                onClick={() => {
-                                                    onSelectStage(stage);
-                                                    setIsOpen(false);
-                                                }}
-                                            >
-                                                <div style={getThumbnailStyle(stage.id)}></div>
-                                                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                                    <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>{stage.difficulty}</div>
-                                                    <div style={{ fontSize: '1.1em', color: '#555' }}>{stage.introduction}</div>
-                                                </div>
+        <Dialog open={isOpen} onOpenChange={(_, data) => setIsOpen(data.open)}>
+            <DialogTrigger disableButtonEnhancement>
+                <Button appearance="primary" onClick={() => setIsOpen(true)}>Select Stage</Button>
+            </DialogTrigger>
+            <DialogSurface style={{ maxWidth: '800px', width: '90vw' }}>
+                <DialogBody>
+                    <DialogTitle>Select Stage</DialogTitle>
+                    <DialogContent style={{ maxHeight: '65vh', overflowY: 'auto', marginTop: '10px' }}>
+                        {ISLANDS.map(island => (
+                            <div key={island.id} style={{ marginBottom: '20px' }}>
+                                <h3 style={{ borderBottom: '2px solid #666', paddingBottom: '5px' }}>{island.name}</h3>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                    {island.stages.map(stage => (
+                                        <div 
+                                            key={stage.id} 
+                                            className="stage-row"
+                                            onClick={() => {
+                                                onSelectStage(stage);
+                                                setIsOpen(false);
+                                            }}
+                                            style={{ cursor: 'pointer' }}
+                                        >
+                                            <div style={getThumbnailStyle(stage.id)}></div>
+                                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                                <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>{stage.difficulty}</div>
+                                                <div style={{ fontSize: '1.1em', color: '#555' }}>{stage.introduction}</div>
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )}
-        </>
+                            </div>
+                        ))}
+                    </DialogContent>
+                </DialogBody>
+            </DialogSurface>
+        </Dialog>
     );
 };
