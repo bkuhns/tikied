@@ -107,6 +107,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
             <Toaster toasterId={toasterId} position="bottom-start" />
             
             {/* Top Toolbar */}
+            {/* hide the whole top toolbar for now, it's kinda pointless for now
             <header style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -123,7 +124,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                 {/* Hide the repack button for now 
                 <Button appearance="primary" onClick={() => setIsRepackerOpen(true)}>Repack Assets</Button>
                 */}
-            </header>
+            {/*</header>*/}
 
             {/* Main Application Body */}
             <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
