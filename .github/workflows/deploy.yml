@@ -40,6 +40,7 @@ jobs:
           cp *.css _site/
           cp -r dist _site/
           if [ -d "assets" ]; then cp -r assets _site/; fi
+          if [ -d "public" ]; then cp -r public/* _site/; fi
           
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
