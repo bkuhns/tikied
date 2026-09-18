@@ -6,6 +6,8 @@ import { StageCanvasViewer, ViewerToggles, RouteToggle } from './stage_canvas_vi
 import { RouteTogglePanel } from './route_toggle_panel.js';
 import { WaveTable } from './wave_table.js';
 import { tikiedTheme } from './theme.js';
+import { PJMArchive } from './pjm_archive.js';
+import { RepackerModal } from './repacker_app.js';
 import { 
     FluentProvider, 
     Button, 
@@ -24,17 +26,20 @@ import {
 
 interface StageInspectorAppProps {
     gateway: GameDataGateway;
-    onBack: () => void;
+    archive: PJMArchive;
+    pkiFile: File;
+    pkdFile: File;
+    onBackToSplash: () => void;
 }
 
-export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, onBack }) => {
+export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, archive, pkiFile, pkdFile, onBackToSplash }) => {
     const [selectedStage, setSelectedStage] = useState<StageInfo>(ISLANDS[0].stages.find(s => s.id === 11) || ISLANDS[0].stages[0]);
     const [difficultyIndex, setDifficultyIndex] = useState<number>(1);
+    const [isRepackerOpen, setIsRepackerOpen] = useState(false);
     
     const toasterId = useId();
     const { dispatchToast } = useToastController(toasterId);
 
-    // Feature Toggles state
     const [toggles, setToggles] = useState<ViewerToggles>({
         showTrees: true,
         showRocks: true,
@@ -59,7 +64,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, o
         setToggles(prev => ({ ...prev, [feature]: !prev[feature] }));
     };
 
-    const handleStatusChange = (statusStr: string) => {
+    const handleStatusChange = (statusStr: string, intent: "success" | "error" | "info" = "success") => {
         if (statusStr.startsWith("Error")) {
             dispatchToast(
                 <Toast>
@@ -68,13 +73,13 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, o
                 </Toast>,
                 { intent: "error" }
             );
-        } else if (statusStr.includes("Successfully")) {
+        } else {
             dispatchToast(
                 <Toast>
-                    <ToastTitle>Success</ToastTitle>
+                    <ToastTitle>{intent === 'success' ? 'Success' : 'Notice'}</ToastTitle>
                     <ToastBody>{statusStr}</ToastBody>
                 </Toast>,
-                { intent: "success" }
+                { intent }
             );
         }
     };
@@ -82,6 +87,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, o
     return (
         <FluentProvider theme={tikiedTheme} style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Toaster toasterId={toasterId} position="bottom-start" />
+            
             {/* Top Toolbar */}
             <header style={{ 
                 display: 'flex', 
@@ -92,77 +98,66 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, o
                 borderBottom: `1px solid ${tikiedTheme.colorNeutralStroke1}`,
                 flexShrink: 0
             }}>
-                <Button onClick={onBack}>← Back to Hub</Button>
-
-                {/* Stage Selection Dialog */}
-                <StageSelection 
-                    gateway={gateway} 
-                    onSelectStage={setSelectedStage} 
-                />
-
-                {/* View Features Dropdown Menu */}
-                <Menu closeOnScroll>
-                    <MenuTrigger disableButtonEnhancement>
-                        <Button>View Features ▾</Button>
-                    </MenuTrigger>
-                    <MenuPopover>
-                        <MenuList>
-                            <MenuItem onClick={() => toggleFeature('showTrees')}>
-                                <Checkbox checked={toggles.showTrees} label="Trees" readOnly />
-                            </MenuItem>
-                            <MenuItem onClick={() => toggleFeature('showRocks')}>
-                                <Checkbox checked={toggles.showRocks} label="Rocks" readOnly />
-                            </MenuItem>
-                            <MenuItem onClick={() => toggleFeature('showObjects')}>
-                                <Checkbox checked={toggles.showObjects} label="Objects" readOnly />
-                            </MenuItem>
-                            <MenuItem onClick={() => toggleFeature('showBridges')}>
-                                <Checkbox checked={toggles.showBridges} label="Bridges" readOnly />
-                            </MenuItem>
-                            <MenuItem onClick={() => toggleFeature('showRoutes')}>
-                                <Checkbox checked={toggles.showRoutes} label="Routes" readOnly />
-                            </MenuItem>
-                            <MenuItem onClick={() => toggleFeature('showWater')}>
-                                <Checkbox checked={toggles.showWater} label="Water" readOnly />
-                            </MenuItem>
-                            <MenuItem onClick={() => toggleFeature('showHudBar')}>
-                                <Checkbox checked={toggles.showHudBar} label="HUD Bar" readOnly />
-                            </MenuItem>
-                        </MenuList>
-                    </MenuPopover>
-                </Menu>
-
-                {/* Difficulty Dropdown Menu */}
-                <Menu closeOnScroll>
-                    <MenuTrigger disableButtonEnhancement>
-                        <Button>Difficulty: {DIFFICULTY_LEVELS[difficultyIndex]} ▾</Button>
-                    </MenuTrigger>
-                    <MenuPopover>
-                        <MenuList>
-                            {DIFFICULTY_LEVELS.map((level, idx) => (
-                                <MenuItem key={idx} onClick={() => setDifficultyIndex(idx)}>
-                                    {level}
-                                </MenuItem>
-                            ))}
-                        </MenuList>
-                    </MenuPopover>
-                </Menu>
+                <Button onClick={onBackToSplash}>Load archives</Button>
+                
+                <div style={{ flex: 1 }} />
+                
+                <Button appearance="primary" onClick={() => setIsRepackerOpen(true)}>Repack Assets</Button>
             </header>
 
             {/* Main Application Body */}
             <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
                 {/* Main Area: Vertical Stack (Stage Title, Viewer, Routes View) */}
                 <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: '#111' }}>
-                    {/* 1. Stage Title */}
+                    {/* 1. Stage Title Bar */}
                     <div style={{ 
                         padding: '12px 20px', 
                         backgroundColor: tikiedTheme.colorNeutralBackground1, 
                         borderBottom: `1px solid ${tikiedTheme.colorNeutralStroke1}`, 
-                        flexShrink: 0 
+                        flexShrink: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '15px'
                     }}>
-                        <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: tikiedTheme.colorNeutralForeground1 }}>
+                        <StageSelection 
+                            gateway={gateway} 
+                            onSelectStage={setSelectedStage} 
+                        />
+                        
+                        <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: tikiedTheme.colorNeutralForeground1, flex: 1 }}>
                             Stage {selectedStage.id}: {selectedStage.difficulty} - {selectedStage.introduction}
                         </h2>
+
+                        <Menu closeOnScroll>
+                            <MenuTrigger disableButtonEnhancement>
+                                <Button>View Features ▾</Button>
+                            </MenuTrigger>
+                            <MenuPopover>
+                                <MenuList>
+                                    <MenuItem onClick={() => toggleFeature('showTrees')}>
+                                        <Checkbox checked={toggles.showTrees} label="Trees" readOnly />
+                                    </MenuItem>
+                                    <MenuItem onClick={() => toggleFeature('showRocks')}>
+                                        <Checkbox checked={toggles.showRocks} label="Rocks" readOnly />
+                                    </MenuItem>
+                                    <MenuItem onClick={() => toggleFeature('showObjects')}>
+                                        <Checkbox checked={toggles.showObjects} label="Objects" readOnly />
+                                    </MenuItem>
+                                    <MenuItem onClick={() => toggleFeature('showBridges')}>
+                                        <Checkbox checked={toggles.showBridges} label="Bridges" readOnly />
+                                    </MenuItem>
+                                    <MenuItem onClick={() => toggleFeature('showRoutes')}>
+                                        <Checkbox checked={toggles.showRoutes} label="Routes" readOnly />
+                                    </MenuItem>
+                                    <MenuItem onClick={() => toggleFeature('showWater')}>
+                                        <Checkbox checked={toggles.showWater} label="Water" readOnly />
+                                    </MenuItem>
+                                    <MenuItem onClick={() => toggleFeature('showHudBar')}>
+                                        <Checkbox checked={toggles.showHudBar} label="HUD Bar" readOnly />
+                                    </MenuItem>
+                                </MenuList>
+                            </MenuPopover>
+                        </Menu>
                     </div>
 
                     {/* 2. Primary Canvas Viewer (Fills all available vertical space) */}
@@ -181,7 +176,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, o
                             toggles={toggles}
                             routeToggles={routeToggles}
                             onRoutesLoaded={setRouteToggles}
-                            onStatusChange={handleStatusChange}
+                            onStatusChange={(msg) => handleStatusChange(msg)}
                         />
                     </div>
 
@@ -203,6 +198,23 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, o
                     overflowY: 'auto',
                     padding: '15px'
                 }}>
+                    <div style={{ marginBottom: '15px' }}>
+                        <Menu closeOnScroll>
+                            <MenuTrigger disableButtonEnhancement>
+                                <Button style={{ width: '100%' }}>Difficulty: {DIFFICULTY_LEVELS[difficultyIndex]} ▾</Button>
+                            </MenuTrigger>
+                            <MenuPopover>
+                                <MenuList>
+                                    {DIFFICULTY_LEVELS.map((level, idx) => (
+                                        <MenuItem key={idx} onClick={() => setDifficultyIndex(idx)}>
+                                            {level}
+                                        </MenuItem>
+                                    ))}
+                                </MenuList>
+                            </MenuPopover>
+                        </Menu>
+                    </div>
+
                     <WaveTable 
                         stageId={selectedStage.id}
                         islandName={currentIslandName}
@@ -211,6 +223,14 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ gateway, o
                     />
                 </aside>
             </div>
+            
+            <RepackerModal 
+                isOpen={isRepackerOpen} 
+                onClose={() => setIsRepackerOpen(false)} 
+                archive={archive} 
+                pkdFile={pkdFile} 
+                onToast={handleStatusChange} 
+            />
         </FluentProvider>
     );
 };
