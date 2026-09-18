@@ -122,7 +122,7 @@ const MainApp: React.FC = () => {
                         Welcome to...
                     </h1>
 
-                    <img src="logo-sm.png" alt="Tikied Logo" style={{ marginBottom: '20px', maxWidth: '300px' }} />
+                    <img src="./logo-sm.png" alt="Tikied Logo" style={{ marginBottom: '20px', maxWidth: '300px' }} />
 
                     <p style={{ fontSize: '1.1rem', color: 'var(--neutral-fg-subtle)', marginBottom: '30px' }}>
                         An editor for the game PixelJunk™ Monsters Ultimate<br/>
