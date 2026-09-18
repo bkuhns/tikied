@@ -60,6 +60,10 @@ export class RoutesRenderer {
         return this.routes;
     }
 
+    public setRoutes(routes: Route[]): void {
+        this.routes = routes;
+    }
+
     public clear() {
         this.routes = [];
     }

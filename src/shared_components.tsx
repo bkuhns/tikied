@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ISLANDS, StageInfo } from './stages_data.js';
-import { PJMArchive } from './pjm_archive.js';
-import { DDSDecoder } from './dds_decoder.js';
+import { GameDataGateway } from './editor_api.js';
 
 export const DIFFICULTY_LEVELS = ["Casual", "Regular", "Hardcore"];
 
@@ -88,23 +87,21 @@ export const ArchiveSelector: React.FC<ArchiveSelectorProps> = ({ pkiFile, setPk
 };
 
 interface StageSelectionProps {
-    archive: PJMArchive | null;
-    pkdFile: File | null;
+    gateway: GameDataGateway;
     onSelectStage: (stage: StageInfo) => void;
 }
 
-export const StageSelection: React.FC<StageSelectionProps> = ({ archive, pkdFile, onSelectStage }) => {
+export const StageSelection: React.FC<StageSelectionProps> = ({ gateway, onSelectStage }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [thumbnailsUrl, setThumbnailsUrl] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!archive || !pkdFile || !isOpen || thumbnailsUrl) return;
+        if (!gateway || !isOpen || thumbnailsUrl) return;
 
         const loadThumbnails = async () => {
             try {
-                const bytes = await archive.extractFile(pkdFile, "data-common/textures/frontend/map/stage_thumbnails.dds");
-                if (bytes) {
-                    const imgData = DDSDecoder.decodeToImageData(bytes, true); // true = flipVert
+                const imgData = await gateway.getStageThumbnails();
+                if (imgData) {
                     const canvas = document.createElement('canvas');
                     canvas.width = imgData.width;
                     canvas.height = imgData.height;
@@ -118,7 +115,7 @@ export const StageSelection: React.FC<StageSelectionProps> = ({ archive, pkdFile
         };
 
         loadThumbnails();
-    }, [archive, pkdFile, isOpen, thumbnailsUrl]);
+    }, [gateway, isOpen, thumbnailsUrl]);
 
     const getThumbnailIndex = (stageId: number): number => {
         if (stageId >= 1 && stageId <= 21) return stageId - 1; // Tiki

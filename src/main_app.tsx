@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PJMArchive } from './pjm_archive.js';
 import { ArchiveSelector } from './shared_components.js';
+import { PJMArchiveGateway, GameDataGateway } from './editor_api.js';
 
 import { StageInfoApp } from './stage_info_app.js';
 import { StageViewerApp } from './stage_viewer_app.js';
@@ -15,6 +16,13 @@ const MainApp: React.FC = () => {
     const [archive, setArchive] = useState<PJMArchive | null>(null);
     const [status, setStatus] = useState<string>('');
     const [currentView, setCurrentView] = useState<ViewState>('hub');
+
+    const gateway = useMemo<GameDataGateway | null>(() => {
+        if (archive && pkdFile) {
+            return new PJMArchiveGateway(archive, pkdFile);
+        }
+        return null;
+    }, [archive, pkdFile]);
 
     const handleLoadArchive = async (pki: File, pkd: File) => {
         if (!pki || !pkd) {
@@ -32,12 +40,12 @@ const MainApp: React.FC = () => {
         }
     };
 
-    if (currentView === 'info' && archive && pkdFile && pkiFile) {
-        return <StageInfoApp archive={archive} pkdFile={pkdFile} pkiFile={pkiFile} onBack={() => setCurrentView('hub')} />;
+    if (currentView === 'info' && gateway) {
+        return <StageInfoApp gateway={gateway} onBack={() => setCurrentView('hub')} />;
     }
     
-    if (currentView === 'viewer' && archive && pkdFile && pkiFile) {
-        return <StageViewerApp archive={archive} pkdFile={pkdFile} pkiFile={pkiFile} onBack={() => setCurrentView('hub')} />;
+    if (currentView === 'viewer' && gateway) {
+        return <StageViewerApp gateway={gateway} onBack={() => setCurrentView('hub')} />;
     }
     
     if (currentView === 'repacker' && archive && pkdFile && pkiFile) {
