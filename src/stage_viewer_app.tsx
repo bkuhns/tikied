@@ -3,6 +3,7 @@ import { ISLANDS, StageInfo } from './stages_data.js';
 import { StageSelection } from './shared_components.js';
 import { GameDataGateway } from './editor_api.js';
 import { StageCanvasViewer, ViewerToggles, RouteToggle } from './stage_canvas_viewer.js';
+import { RouteTogglePanel } from './route_toggle_panel.js';
 
 interface StageViewerAppProps {
     gateway: GameDataGateway;
@@ -87,23 +88,10 @@ export const StageViewerApp: React.FC<StageViewerAppProps> = ({ gateway, onBack 
                     </label>
                 </div>
                 
-                {routeToggles.length > 0 && (
-                    <div className="form-group">
-                        <label>Stage routes:</label>
-                        <div id="routeTogglesContainer" style={{ marginBottom: '15px', display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                            {routeToggles.map((rt, idx) => (
-                                <label key={idx} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: rt.color, fontWeight: 'bold', textShadow: '1px 1px 2px black' }}>
-                                    <input type="checkbox" checked={rt.visible} onChange={(e) => {
-                                        const newToggles = [...routeToggles];
-                                        newToggles[idx].visible = e.target.checked;
-                                        setRouteToggles(newToggles);
-                                    }} />
-                                    Route {idx + 1}
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                <RouteTogglePanel 
+                    routeToggles={routeToggles} 
+                    onToggleChange={setRouteToggles} 
+                />
                 
                 <StageCanvasViewer 
                     stageId={selectedStage.id}
