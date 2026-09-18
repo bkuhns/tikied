@@ -1,6 +1,7 @@
 import React from 'react';
 import { RouteToggle } from './stage_canvas_viewer.js';
 import { Button, Checkbox } from '@fluentui/react-components';
+import { SelectAllOnRegular, SelectAllOffRegular } from '@fluentui/react-icons';
 
 export interface RouteTogglePanelProps {
     routeToggles: RouteToggle[];
@@ -17,20 +18,22 @@ export const RouteTogglePanel: React.FC<RouteTogglePanelProps> = ({ routeToggles
     };
 
     return (
-        <div style={{ padding: '10px' }}>
-            <h3 style={{ margin: '0 0 10px 0' }}>Stage Routes</h3>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-                <Button size="small" onClick={() => setAll(true)}>All</Button>
-                <Button size="small" onClick={() => setAll(false)}>None</Button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 15px' }}>
+            {/* Left cell: Action buttons */}
+            <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                <Button size="small" icon={<SelectAllOnRegular />} title="Select All Routes" aria-label="Select All Routes" onClick={() => setAll(true)} />
+                <Button size="small" icon={<SelectAllOffRegular />} title="Select No Routes" aria-label="Select No Routes" onClick={() => setAll(false)} />
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            
+            {/* Right cell: Inline checkboxes */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', alignItems: 'center', flex: 1 }}>
                 {routeToggles.map((rt, idx) => (
                     <div key={idx} style={{ display: 'flex', alignItems: 'center', color: rt.color, fontWeight: 'bold', textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
                         <Checkbox 
                             checked={rt.visible} 
                             onChange={(_, data) => {
                                 const newToggles = [...routeToggles];
-                                newToggles[idx].visible = !!data.checked;
+                                newToggles[idx] = { ...newToggles[idx], visible: !!data.checked };
                                 onToggleChange(newToggles);
                             }}
                             label={`Route ${idx + 1}`}

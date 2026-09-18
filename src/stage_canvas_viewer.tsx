@@ -135,10 +135,14 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     });
 
     const togglesRef = useRef({ toggles, routeToggles });
+    const onRoutesLoadedRef = useRef(onRoutesLoaded);
+    const onStatusChangeRef = useRef(onStatusChange);
 
     useEffect(() => {
         togglesRef.current = { toggles, routeToggles };
-    }, [toggles, routeToggles]);
+        onRoutesLoadedRef.current = onRoutesLoaded;
+        onStatusChangeRef.current = onStatusChange;
+    }, [toggles, routeToggles, onRoutesLoaded, onStatusChange]);
 
     // Apply route toggles to the RouteRenderer directly when they change
     useEffect(() => {
@@ -152,19 +156,19 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     useEffect(() => {
         const initShader = async () => {
             try {
-                if (onStatusChange) onStatusChange("Extracting shader...");
+                if (onStatusChangeRef.current) onStatusChangeRef.current("Extracting shader...");
                 const shaderText = await gateway.getWaterShader();
                 if (shaderText) {
                     webglWaterRenderer.initShaders(shaderText);
                 }
-                if (onStatusChange) onStatusChange("Shader loaded.");
+                if (onStatusChangeRef.current) onStatusChangeRef.current("Shader loaded.");
             } catch (e: any) {
-                if (onStatusChange) onStatusChange("Error initializing shader: " + e.message);
+                if (onStatusChangeRef.current) onStatusChangeRef.current("Error initializing shader: " + e.message);
                 console.error(e);
             }
         };
         initShader();
-    }, [gateway, webglWaterRenderer, onStatusChange]);
+    }, [gateway, webglWaterRenderer]);
 
     // Render loop
     useEffect(() => {
@@ -334,7 +338,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     useEffect(() => {
         const loadData = async () => {
             try {
-                if (onStatusChange) onStatusChange(`Extracting Stage ${stageId} background...`);
+                if (onStatusChangeRef.current) onStatusChangeRef.current(`Extracting Stage ${stageId} background...`);
                 
                 const bgImgData = await gateway.getStageBackground(stageId);
                 if (!bgImgData) {
@@ -349,19 +353,19 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                     webglWaterRenderer.setWaveTexture(waveImgData);
                 }
 
-                if (onStatusChange) onStatusChange(`Extracting Stage ${stageId} routes...`);
+                if (onStatusChangeRef.current) onStatusChangeRef.current(`Extracting Stage ${stageId} routes...`);
                 const routes = await gateway.getStageRoutes(stageId);
                 routesRenderer.clear();
                 if (routes) {
                     routesRenderer.setRoutes(routes);
-                    if (onRoutesLoaded) {
-                        onRoutesLoaded(routes.map((r: Route, idx: number) => ({ id: idx, color: r.color, visible: true })));
+                    if (onRoutesLoadedRef.current) {
+                        onRoutesLoadedRef.current(routes.map((r: Route, idx: number) => ({ id: idx, color: r.color, visible: true })));
                     }
-                } else if (onRoutesLoaded) {
-                    onRoutesLoaded([]);
+                } else if (onRoutesLoadedRef.current) {
+                    onRoutesLoadedRef.current([]);
                 }
 
-                if (onStatusChange) onStatusChange(`Extracting Stage ${stageId} trees and objects...`);
+                if (onStatusChangeRef.current) onStatusChangeRef.current(`Extracting Stage ${stageId} trees and objects...`);
                 const decorations = await gateway.getStageDecorations(stageId);
                 if (decorations) {
                     sceneRef.current.treeInstances = decorations.trees;
@@ -369,7 +373,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                     sceneRef.current.objectInstances = decorations.objects;
                     sceneRef.current.rockInstances = decorations.rocks;
 
-                    if (onStatusChange) onStatusChange(`Loading sprite sheets...`);
+                    if (onStatusChangeRef.current) onStatusChangeRef.current(`Loading sprite sheets...`);
                     for (const t of Array.from(decorations.typesToLoad)) {
                         const spritePath = SPRITE_PATHS[t];
                         if (!spriteCache.current.has(t) && spritePath) {
@@ -385,9 +389,9 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                     }
                 }
 
-                if (onStatusChange) onStatusChange(`Successfully loaded Stage ${stageId}!`);
+                if (onStatusChangeRef.current) onStatusChangeRef.current(`Successfully loaded Stage ${stageId}!`);
             } catch (e: any) {
-                if (onStatusChange) onStatusChange("Error: " + e.message);
+                if (onStatusChangeRef.current) onStatusChangeRef.current("Error: " + e.message);
                 console.error(e);
                 
                 sceneRef.current.currentImageData = null;
@@ -399,7 +403,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
         };
 
         loadData();
-    }, [stageId, gateway, webglWaterRenderer, routesRenderer, onRoutesLoaded, onStatusChange]);
+    }, [stageId, gateway, webglWaterRenderer, routesRenderer]);
 
     return (
         <div className="canvas-container">

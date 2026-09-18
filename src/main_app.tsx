@@ -7,8 +7,9 @@ import { PJMArchiveGateway, GameDataGateway } from './editor_api.js';
 import { StageInfoApp } from './stage_info_app.js';
 import { StageViewerApp } from './stage_viewer_app.js';
 import { RepackerApp } from './repacker_app.js';
+import { StageInspectorApp } from './stage_inspector_app.js';
 
-type ViewState = 'hub' | 'info' | 'viewer' | 'repacker';
+type ViewState = 'hub' | 'info' | 'viewer' | 'repacker' | 'inspector';
 
 const MainApp: React.FC = () => {
     const [pkiFile, setPkiFile] = useState<File | null>(null);
@@ -39,6 +40,10 @@ const MainApp: React.FC = () => {
             console.error(e);
         }
     };
+
+    if (currentView === 'inspector' && gateway) {
+        return <StageInspectorApp gateway={gateway} onBack={() => setCurrentView('hub')} />;
+    }
 
     if (currentView === 'info' && gateway) {
         return <StageInfoApp gateway={gateway} onBack={() => setCurrentView('hub')} />;
@@ -73,6 +78,11 @@ const MainApp: React.FC = () => {
             <div className="section" style={{ opacity: archive ? 1 : 0.5, pointerEvents: archive ? 'auto' : 'none' }}>
                 <h2>2. Available Experiments</h2>
                 <div className="poc-grid">
+                    <a href="#" className="poc-card" onClick={(e) => { e.preventDefault(); setCurrentView('inspector'); }}>
+                        <h3>Stage Inspector (Combined Viewer)</h3>
+                        <p>Full-screen stage editor prototype combining WebGL viewer, route controls, and wave data sidebar.</p>
+                    </a>
+
                     <a href="#" className="poc-card" onClick={(e) => { e.preventDefault(); setCurrentView('info'); }}>
                         <h3>Stage Info</h3>
                         <p>View info about a stage's waves and coin/gem payouts.</p>

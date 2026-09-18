@@ -135,7 +135,7 @@ export const WaveTable: React.FC<WaveTableProps> = ({ stageId, islandName, diffi
 
                     return (
                         <div key={wave.id} className="wave-card">
-                            <div className="wave-header" style={{ alignItems: 'center' }}>
+                            <div className="wave-header" style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '10px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     {barIconsUrl ? (
                                         <div style={{ display: 'flex', gap: '2px' }}>
@@ -156,11 +156,10 @@ export const WaveTable: React.FC<WaveTableProps> = ({ stageId, islandName, diffi
                                             : ''}
                                     </span>
                                 </div>
-                                <span className="wave-details" style={{ fontSize: '0.9em' }}>
+                                <div className="wave-details" style={{ fontSize: '0.85em', color: '#444', fontWeight: 'normal' }}>
                                     {wave.hpUp !== undefined && <span style={{ marginRight: '15px' }}>HP Multiplier: {wave.hpUp}x</span>}
-                                    Coins: 🪙 {wave.coinsTotal} | 
-                                    Gems: 💎 {wave.gemsTotal}
-                                </span>
+                                    Coins: 🪙 {wave.coinsTotal} | Gems: 💎 {wave.gemsTotal}
+                                </div>
                             </div>
                             <table className="subwave-table">
                                 <thead>

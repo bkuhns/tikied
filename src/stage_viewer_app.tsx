@@ -88,10 +88,13 @@ export const StageViewerApp: React.FC<StageViewerAppProps> = ({ gateway, onBack 
                     </label>
                 </div>
                 
-                <RouteTogglePanel 
-                    routeToggles={routeToggles} 
-                    onToggleChange={setRouteToggles} 
-                />
+                <div style={{ marginTop: '15px' }}>
+                    <h3 style={{ margin: '0 0 5px 0' }}>Stage Routes</h3>
+                    <RouteTogglePanel 
+                        routeToggles={routeToggles} 
+                        onToggleChange={setRouteToggles} 
+                    />
+                </div>
                 
                 <StageCanvasViewer 
                     stageId={selectedStage.id}
