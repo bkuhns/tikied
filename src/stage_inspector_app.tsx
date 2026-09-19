@@ -65,7 +65,8 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
         showBridges: true,
         showRoutes: true,
         showWater: true,
-        showHudBar: true
+        showHudBar: true,
+        showAnimations: true
     });
 
     const [routeToggles, setRouteToggles] = useState<RouteToggle[]>([]);
@@ -175,6 +176,9 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                                     </MenuItem>
                                     <MenuItem onClick={() => toggleFeature('showHudBar')}>
                                         <Checkbox checked={toggles.showHudBar} label="HUD Bar" readOnly />
+                                    </MenuItem>
+                                    <MenuItem onClick={() => toggleFeature('showAnimations')}>
+                                        <Checkbox checked={toggles.showAnimations} label="Animations" readOnly />
                                     </MenuItem>
                                 </MenuList>
                             </MenuPopover>

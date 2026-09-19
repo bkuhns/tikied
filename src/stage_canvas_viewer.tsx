@@ -11,6 +11,7 @@ export interface ViewerToggles {
     showRoutes: boolean;
     showWater: boolean;
     showHudBar: boolean;
+    showAnimations: boolean;
 }
 
 export interface RouteToggle {
@@ -125,7 +126,16 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     const routesRenderer = useMemo(() => new RoutesRenderer(), []);
     const spriteCache = useRef(new Map<string, HTMLCanvasElement>());
 
-    // State refs for render loop
+    // Refs for callbacks
+    const onRoutesLoadedRef = useRef(onRoutesLoaded);
+    const onStatusChangeRef = useRef(onStatusChange);
+
+    useEffect(() => {
+        onRoutesLoadedRef.current = onRoutesLoaded;
+        onStatusChangeRef.current = onStatusChange;
+    }, [onRoutesLoaded, onStatusChange]);
+
+    // Scene state ref
     const sceneRef = useRef({
         currentImageData: null as ImageData | null,
         treeInstances: [] as SpriteInstance[],
@@ -135,14 +145,11 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     });
 
     const togglesRef = useRef({ toggles, routeToggles });
-    const onRoutesLoadedRef = useRef(onRoutesLoaded);
-    const onStatusChangeRef = useRef(onStatusChange);
+    const renderRef = useRef<() => void>(() => {});
 
     useEffect(() => {
         togglesRef.current = { toggles, routeToggles };
-        onRoutesLoadedRef.current = onRoutesLoaded;
-        onStatusChangeRef.current = onStatusChange;
-    }, [toggles, routeToggles, onRoutesLoaded, onStatusChange]);
+    }, [toggles, routeToggles]);
 
     // Apply route toggles to the RouteRenderer directly when they change
     useEffect(() => {
@@ -173,6 +180,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     // Render loop
     useEffect(() => {
         let renderRafId: number | null = null;
+        let isCancelled = false;
 
         function drawSprite(ctx: CanvasRenderingContext2D, inst: SpriteInstance) {
             if (!scratchCanvas || !scratchCtx) return;
@@ -217,7 +225,9 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 ctx.save();
                 ctx.globalAlpha = inst.alpha ?? 1.0;
 
-                if (inst.type.startsWith("tree_")) {
+                const { toggles: t } = togglesRef.current;
+
+                if (t.showAnimations && inst.type.startsWith("tree_")) {
                     const time = performance.now() / 1000.0;
                     const rand1 = Math.abs((Math.sin(inst.x * 12.9898 + inst.y * 78.233) * 43758.5453) % 1.0);
                     const rand2 = Math.abs((Math.cos(inst.x * 4.141 + inst.y * 67.342) * 23145.2413) % 1.0);
@@ -266,8 +276,10 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
         }
         
         function render() {
+            if (isCancelled) return;
             if (renderRafId) {
                 cancelAnimationFrame(renderRafId);
+                renderRafId = null;
             }
 
             const canvas = canvasRef.current;
@@ -276,7 +288,9 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
             const { toggles: t } = togglesRef.current;
 
             if (!canvas || !ctx || !scene.currentImageData) {
-                renderRafId = requestAnimationFrame(render);
+                if (t.showAnimations) {
+                    renderRafId = requestAnimationFrame(render);
+                }
                 return;
             }
             
@@ -290,7 +304,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
             canvas.height = H;
             
             if (t.showWater) {
-                webglWaterRenderer.updateAndDraw();
+                webglWaterRenderer.updateAndDraw(t.showAnimations);
                 ctx.drawImage(webglWaterRenderer.getCanvas(), 0, 0);
             } else {
                 ctx.putImageData(scene.currentImageData, 0, 0);
@@ -325,14 +339,19 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 ctx.drawImage(barCanvas, sx, 0, sw, 128, dx, H - 113, sw, 128);
             }
             
-            renderRafId = requestAnimationFrame(render);
+            if (t.showAnimations) {
+                renderRafId = requestAnimationFrame(render);
+            }
         }
 
-        renderRafId = requestAnimationFrame(render);
+        renderRef.current = render;
+        render();
+
         return () => {
+            isCancelled = true;
             if (renderRafId) cancelAnimationFrame(renderRafId);
         };
-    }, [webglWaterRenderer, routesRenderer]);
+    }, [toggles, routeToggles, webglWaterRenderer, routesRenderer]);
 
     // Load Data
     useEffect(() => {
@@ -390,6 +409,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 }
 
                 if (onStatusChangeRef.current) onStatusChangeRef.current(`Successfully loaded Stage ${stageId}!`);
+                renderRef.current();
             } catch (e: any) {
                 if (onStatusChangeRef.current) onStatusChangeRef.current("Error: " + e.message);
                 console.error(e);

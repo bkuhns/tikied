@@ -194,24 +194,26 @@ export class WebGLWaterRenderer {
         return this.canvas;
     }
 
-    public updateAndDraw() {
+    public updateAndDraw(animate: boolean = true) {
         if (!this.stageTexture || !this.waveTexture) return;
 
-        // Update offsets
-        this.tex1_offset_x += this.dx1;
-        this.tex1_offset_y += this.dy1;
-        this.tex2_offset_x += this.dx2;
-        this.tex2_offset_y += this.dy2;
+        if (animate) {
+            // Update offsets
+            this.tex1_offset_x += this.dx1;
+            this.tex1_offset_y += this.dy1;
+            this.tex2_offset_x += this.dx2;
+            this.tex2_offset_y += this.dy2;
 
-        if (this.tex1_offset_x > 1.0) this.tex1_offset_x -= 1.0;
-        if (this.tex1_offset_x < -1.0) this.tex1_offset_x += 1.0;
-        if (this.tex1_offset_y > 1.0) this.tex1_offset_y -= 1.0;
-        if (this.tex1_offset_y < -1.0) this.tex1_offset_y += 1.0;
+            if (this.tex1_offset_x > 1.0) this.tex1_offset_x -= 1.0;
+            if (this.tex1_offset_x < -1.0) this.tex1_offset_x += 1.0;
+            if (this.tex1_offset_y > 1.0) this.tex1_offset_y -= 1.0;
+            if (this.tex1_offset_y < -1.0) this.tex1_offset_y += 1.0;
 
-        if (this.tex2_offset_x > 1.0) this.tex2_offset_x -= 1.0;
-        if (this.tex2_offset_x < -1.0) this.tex2_offset_x += 1.0;
-        if (this.tex2_offset_y > 1.0) this.tex2_offset_y -= 1.0;
-        if (this.tex2_offset_y < -1.0) this.tex2_offset_y += 1.0;
+            if (this.tex2_offset_x > 1.0) this.tex2_offset_x -= 1.0;
+            if (this.tex2_offset_x < -1.0) this.tex2_offset_x += 1.0;
+            if (this.tex2_offset_y > 1.0) this.tex2_offset_y -= 1.0;
+            if (this.tex2_offset_y < -1.0) this.tex2_offset_y += 1.0;
+        }
 
         const gl = this.gl;
         gl.useProgram(this.program);
