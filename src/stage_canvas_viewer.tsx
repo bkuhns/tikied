@@ -125,6 +125,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     const webglWaterRenderer = useMemo(() => new WebGLWaterRenderer(), []);
     const routesRenderer = useMemo(() => new RoutesRenderer(), []);
     const spriteCache = useRef(new Map<string, HTMLCanvasElement>());
+    const tintedSpriteCache = useRef(new Map<string, HTMLCanvasElement>());
 
     // Refs for callbacks
     const onRoutesLoadedRef = useRef(onRoutesLoaded);
@@ -138,10 +139,13 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     // Scene state ref
     const sceneRef = useRef({
         currentImageData: null as ImageData | null,
+        bgCanvas: null as HTMLCanvasElement | null,
         treeInstances: [] as SpriteInstance[],
         rockInstances: [] as SpriteInstance[],
         bridgeInstances: [] as SpriteInstance[],
-        objectInstances: [] as SpriteInstance[]
+        objectInstances: [] as SpriteInstance[],
+        sortedInstances: [] as SpriteInstance[],
+        sortedInstancesKey: ''
     });
 
     const togglesRef = useRef({ toggles, routeToggles });
@@ -182,9 +186,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
         let renderRafId: number | null = null;
         let isCancelled = false;
 
-        function drawSprite(ctx: CanvasRenderingContext2D, inst: SpriteInstance) {
-            if (!scratchCanvas || !scratchCtx) return;
-
+        function drawSprite(ctx: CanvasRenderingContext2D, inst: SpriteInstance, timeSec: number) {
             try {
                 const sheet = spriteCache.current.get(inst.type);
                 const meta = SPRITE_SHEETS[inst.type];
@@ -222,54 +224,74 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 const dx = inst.x - (drawWidth / 2);
                 const dy = inst.y - (drawHeight / 2);
 
-                ctx.save();
-                ctx.globalAlpha = inst.alpha ?? 1.0;
+                // Tint caching
+                const isTinted = inst.r < 0.99 || inst.g < 0.99 || inst.b < 0.99;
+                let drawSource: HTMLCanvasElement = sheet;
+                let sxDraw = sx;
+                let syDraw = sy;
+
+                if (isTinted) {
+                    const rFixed = Math.round(inst.r * 255);
+                    const gFixed = Math.round(inst.g * 255);
+                    const bFixed = Math.round(inst.b * 255);
+                    const tintKey = `${inst.type}_${ani}_${rFixed}_${gFixed}_${bFixed}`;
+                    
+                    let cachedTinted = tintedSpriteCache.current.get(tintKey);
+                    if (!cachedTinted) {
+                        cachedTinted = document.createElement('canvas');
+                        cachedTinted.width = spriteWidth;
+                        cachedTinted.height = spriteHeight;
+                        const tCtx = cachedTinted.getContext('2d')!;
+                        
+                        tCtx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, 0, 0, spriteWidth, spriteHeight);
+                        tCtx.globalCompositeOperation = 'multiply';
+                        tCtx.fillStyle = `rgb(${rFixed}, ${gFixed}, ${bFixed})`;
+                        tCtx.fillRect(0, 0, spriteWidth, spriteHeight);
+                        tCtx.globalCompositeOperation = 'destination-in';
+                        tCtx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, 0, 0, spriteWidth, spriteHeight);
+                        
+                        tintedSpriteCache.current.set(tintKey, cachedTinted);
+                    }
+                    drawSource = cachedTinted;
+                    sxDraw = 0;
+                    syDraw = 0;
+                }
 
                 const { toggles: t } = togglesRef.current;
 
                 if (t.showAnimations && inst.type.startsWith("tree_")) {
-                    const time = performance.now() / 1000.0;
-                    const rand1 = Math.abs((Math.sin(inst.x * 12.9898 + inst.y * 78.233) * 43758.5453) % 1.0);
-                    const rand2 = Math.abs((Math.cos(inst.x * 4.141 + inst.y * 67.342) * 23145.2413) % 1.0);
-                    const timeOffset = rand1 * Math.PI * 2;
-                    const treeStrength = 0.4 + (rand2 * 0.6);
-                    const speed = 0.75; 
-                    
-                    let baseSway = Math.sin((time * speed) + timeOffset);
-                    let shapedSway = Math.tanh(baseSway * 2.5);
-                    const swayAngle = shapedSway * 0.05 * treeStrength;
-
-                    const swayAnchorX = inst.x;
-                    const swayAnchorY = inst.y + (drawHeight / 2);
-
-                    ctx.translate(swayAnchorX, swayAnchorY);
-                    ctx.transform(1, 0, Math.tan(swayAngle), 1, 0, 0);
-                    ctx.translate(-swayAnchorX, -swayAnchorY);
-                }
-
-                if (inst.r >= 0.99 && inst.g >= 0.99 && inst.b >= 0.99) {
-                    ctx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
-                } else {
-                    if (scratchCanvas.width < spriteWidth || scratchCanvas.height < spriteHeight) {
-                        scratchCanvas.width = spriteWidth;
-                        scratchCanvas.height = spriteHeight;
+                    if ((inst as any)._timeOffset === undefined) {
+                        const rand1 = Math.abs((Math.sin(inst.x * 12.9898 + inst.y * 78.233) * 43758.5453) % 1.0);
+                        const rand2 = Math.abs((Math.cos(inst.x * 4.141 + inst.y * 67.342) * 23145.2413) % 1.0);
+                        (inst as any)._timeOffset = rand1 * Math.PI * 2;
+                        (inst as any)._treeStrength = 0.4 + (rand2 * 0.6);
                     }
-                    
-                    scratchCtx.clearRect(0, 0, spriteWidth, spriteHeight);
-                    scratchCtx.globalCompositeOperation = 'source-over';
-                    scratchCtx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, 0, 0, spriteWidth, spriteHeight);
-                    
-                    scratchCtx.globalCompositeOperation = 'multiply';
-                    scratchCtx.fillStyle = `rgb(${inst.r * 255}, ${inst.g * 255}, ${inst.b * 255})`;
-                    scratchCtx.fillRect(0, 0, spriteWidth, spriteHeight);
 
-                    scratchCtx.globalCompositeOperation = 'destination-in';
-                    scratchCtx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, 0, 0, spriteWidth, spriteHeight);
+                    const speed = 0.75; 
+                    const baseSway = Math.sin((timeSec * speed) + (inst as any)._timeOffset);
+                    const swayAngle = baseSway * 0.04 * (inst as any)._treeStrength;
 
-                    ctx.drawImage(scratchCanvas, 0, 0, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
+                    if (Math.abs(swayAngle) > 0.001) {
+                        ctx.setTransform(1, 0, swayAngle, 1, dx - (swayAngle * drawHeight), dy);
+                        if (inst.alpha !== undefined && inst.alpha < 0.99) {
+                            ctx.globalAlpha = inst.alpha;
+                        }
+                        ctx.drawImage(drawSource, sxDraw, syDraw, spriteWidth, spriteHeight, 0, 0, drawWidth, drawHeight);
+                        ctx.setTransform(1, 0, 0, 1, 0, 0);
+                        if (inst.alpha !== undefined && inst.alpha < 0.99) {
+                            ctx.globalAlpha = 1.0;
+                        }
+                        return;
+                    }
                 }
-                
-                ctx.restore();
+
+                if (inst.alpha !== undefined && inst.alpha < 0.99) {
+                    ctx.globalAlpha = inst.alpha;
+                    ctx.drawImage(drawSource, sxDraw, syDraw, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
+                    ctx.globalAlpha = 1.0;
+                } else {
+                    ctx.drawImage(drawSource, sxDraw, syDraw, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
+                }
             } catch (e: any) {
                 console.error("Error drawing sprite:", e);
             }
@@ -300,12 +322,14 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 H = Math.round(W * (9 / 16));
             }
 
-            canvas.width = W;
-            canvas.height = H;
+            if (canvas.width !== W) canvas.width = W;
+            if (canvas.height !== H) canvas.height = H;
             
             if (t.showWater) {
                 webglWaterRenderer.updateAndDraw(t.showAnimations);
                 ctx.drawImage(webglWaterRenderer.getCanvas(), 0, 0);
+            } else if (scene.bgCanvas) {
+                ctx.drawImage(scene.bgCanvas, 0, 0);
             } else {
                 ctx.putImageData(scene.currentImageData, 0, 0);
             }
@@ -315,16 +339,23 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 ctx.fillRect(0, scene.currentImageData.height, W, H - scene.currentImageData.height);
             }
 
-            const allInstances: SpriteInstance[] = [];
-            if (t.showBridges) allInstances.push(...scene.bridgeInstances);
-            if (t.showTrees) allInstances.push(...scene.treeInstances);
-            if (t.showRocks) allInstances.push(...scene.rockInstances);
-            if (t.showObjects) allInstances.push(...scene.objectInstances);
-            
-            allInstances.sort((a, b) => (a.z ?? a.y) - (b.z ?? b.y));
+            // Cache sorted instances list unless toggles or scene changed
+            const key = `${t.showBridges ? 1 : 0}${t.showTrees ? 1 : 0}${t.showRocks ? 1 : 0}${t.showObjects ? 1 : 0}`;
+            if (scene.sortedInstancesKey !== key) {
+                const allInstances: SpriteInstance[] = [];
+                if (t.showBridges) allInstances.push(...scene.bridgeInstances);
+                if (t.showTrees) allInstances.push(...scene.treeInstances);
+                if (t.showRocks) allInstances.push(...scene.rockInstances);
+                if (t.showObjects) allInstances.push(...scene.objectInstances);
+                
+                allInstances.sort((a, b) => (a.z ?? a.y) - (b.z ?? b.y));
+                scene.sortedInstances = allInstances;
+                scene.sortedInstancesKey = key;
+            }
 
-            for (const inst of allInstances) {
-                drawSprite(ctx, inst);
+            const timeSec = performance.now() / 1000.0;
+            for (const inst of scene.sortedInstances) {
+                drawSprite(ctx, inst, timeSec);
             }
 
             if (t.showRoutes) {
@@ -365,6 +396,11 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 }
 
                 sceneRef.current.currentImageData = bgImgData;
+                const bgCanvas = document.createElement('canvas');
+                bgCanvas.width = bgImgData.width;
+                bgCanvas.height = bgImgData.height;
+                bgCanvas.getContext('2d')!.putImageData(bgImgData, 0, 0);
+                sceneRef.current.bgCanvas = bgCanvas;
                 webglWaterRenderer.setStageTexture(bgImgData);
                 
                 const waveImgData = await gateway.getWaveTexture();
@@ -387,7 +423,9 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 if (onStatusChangeRef.current) onStatusChangeRef.current(`Extracting Stage ${stageId} trees and objects...`);
                 const decorations = await gateway.getStageDecorations(stageId);
                 if (decorations) {
-                    sceneRef.current.treeInstances = decorations.trees;
+                    sceneRef.current.sortedInstancesKey = '';
+                tintedSpriteCache.current.clear();
+                sceneRef.current.treeInstances = decorations.trees;
                     sceneRef.current.bridgeInstances = decorations.bridges;
                     sceneRef.current.objectInstances = decorations.objects;
                     sceneRef.current.rockInstances = decorations.rocks;

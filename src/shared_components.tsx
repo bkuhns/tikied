@@ -157,6 +157,79 @@ interface StageSelectionProps {
     allowClose?: boolean;
 }
 
+
+interface StageCardProps {
+    stage: StageInfo;
+    thumbnailsUrl: string | null;
+    onSelectStage: (stage: StageInfo) => void;
+    handleOpenChange: (open: boolean) => void;
+}
+
+const StageCard = React.memo(({ stage, thumbnailsUrl, onSelectStage, handleOpenChange }: StageCardProps) => {
+    const getThumbnailIndex = (stageId: number): number => {
+        const mappedId = getBaseStageId(stageId);
+
+        if (mappedId >= 1 && mappedId <= 21) return mappedId - 1; // Tiki
+        if (mappedId >= 43 && mappedId <= 57) return mappedId - 22; // Toki
+        if (mappedId >= 73 && mappedId <= 83) return mappedId - 37; // Gati Gati
+        return 47; // Unknown
+    };
+
+    const getThumbnailStyle = (stageId: number): React.CSSProperties => {
+        if (!thumbnailsUrl) {
+            return {
+                width: '192.5px', height: '97.5px',
+                backgroundColor: 'var(--neutral-bg-surface, #E3DCBE)',
+                display: 'inline-block'
+            };
+        }
+        
+        const thumb = getThumbnailIndex(stageId);
+        const thumbX = thumb % 5;
+        const thumbY = 9 - Math.floor(thumb / 5);
+        
+        const posX = -(thumbX * 192.5);
+        const posY = -(thumbY * 100);
+
+        return {
+            width: '192.5px', 
+            height: '97.5px',
+            backgroundImage: `url(${thumbnailsUrl})`,
+            backgroundSize: '962.5px 1000px',
+            backgroundPosition: `${posX}px ${posY}px`,
+            display: 'inline-block',
+            flexShrink: 0,
+            border: '2px solid var(--neutral-stroke-1, #D2C8A8)',
+            borderRadius: '4px'
+        };
+    };
+
+    return (
+        <div 
+            className="stage-row"
+            onClick={() => {
+                onSelectStage(stage);
+                handleOpenChange(false);
+            }}
+            style={{ 
+                cursor: 'pointer',
+                display: 'flex',
+                gap: '12px',
+                padding: '8px',
+                borderRadius: '6px',
+                border: '1px solid var(--neutral-stroke-1, #D2C8A8)',
+                backgroundColor: 'var(--neutral-bg-subtle, #F5F0DC)',
+                transition: 'all 0.15s ease'
+            }}
+        >
+            <div style={getThumbnailStyle(stage.id)}></div>
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ fontSize: '1.15em', fontWeight: 'bold' }}>{stage.difficulty}</div>
+                <div style={{ fontSize: '0.95em', color: 'var(--neutral-fg-subtle, #523C2A)', marginTop: '4px' }}>{stage.introduction}</div>
+            </div>
+        </div>
+    );
+});
 export const StageSelection: React.FC<StageSelectionProps> = ({ 
     gateway, 
     onSelectStage, 
@@ -203,7 +276,7 @@ export const StageSelection: React.FC<StageSelectionProps> = ({
                     canvas.height = imgData.height;
                     const ctx = canvas.getContext('2d');
                     ctx?.putImageData(imgData, 0, 0);
-                    setThumbnailsUrl(canvas.toDataURL());
+                    canvas.toBlob((blob) => { if (blob) setThumbnailsUrl(URL.createObjectURL(blob)); });
                 }
             } catch (e) {
                 console.error("Failed to load stage thumbnails", e);
@@ -212,44 +285,6 @@ export const StageSelection: React.FC<StageSelectionProps> = ({
 
         loadThumbnails();
     }, [gateway, isOpen, thumbnailsUrl]);
-
-    const getThumbnailIndex = (stageId: number): number => {
-        const mappedId = getBaseStageId(stageId);
-
-        if (mappedId >= 1 && mappedId <= 21) return mappedId - 1; // Tiki
-        if (mappedId >= 43 && mappedId <= 57) return mappedId - 22; // Toki
-        if (mappedId >= 73 && mappedId <= 83) return mappedId - 37; // Gati Gati
-        return 47; // Unknown
-    };
-
-    const getThumbnailStyle = (stageId: number): React.CSSProperties => {
-        if (!thumbnailsUrl) {
-            return {
-                width: '192.5px', height: '97.5px',
-                backgroundColor: 'var(--neutral-bg-surface, #E3DCBE)',
-                display: 'inline-block'
-            };
-        }
-        
-        const thumb = getThumbnailIndex(stageId);
-        const thumbX = thumb % 5;
-        const thumbY = 9 - Math.floor(thumb / 5);
-        
-        const posX = -(thumbX * 192.5);
-        const posY = -(thumbY * 100);
-
-        return {
-            width: '192.5px', 
-            height: '97.5px',
-            backgroundImage: `url(${thumbnailsUrl})`,
-            backgroundSize: '962.5px 1000px',
-            backgroundPosition: `${posX}px ${posY}px`,
-            display: 'inline-block',
-            flexShrink: 0,
-            border: '2px solid var(--neutral-stroke-1, #D2C8A8)',
-            borderRadius: '4px'
-        };
-    };
 
     const dialogContent = (
         <DialogBody style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -296,30 +331,13 @@ export const StageSelection: React.FC<StageSelectionProps> = ({
                                 <AccordionPanel style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '10px' }}>
                                         {island.stages.map((stage, idx) => (
-                                            <div 
-                                                key={`${island.id}-${stage.id}-${idx}`} 
-                                                className="stage-row"
-                                                onClick={() => {
-                                                    onSelectStage(stage);
-                                                    handleOpenChange(false);
-                                                }}
-                                                style={{ 
-                                                    cursor: 'pointer',
-                                                    display: 'flex',
-                                                    gap: '12px',
-                                                    padding: '8px',
-                                                    borderRadius: '6px',
-                                                    border: '1px solid var(--neutral-stroke-1, #D2C8A8)',
-                                                    backgroundColor: 'var(--neutral-bg-subtle, #F5F0DC)',
-                                                    transition: 'all 0.15s ease'
-                                                }}
-                                            >
-                                                <div style={getThumbnailStyle(stage.id)}></div>
-                                                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                                    <div style={{ fontSize: '1.15em', fontWeight: 'bold' }}>{stage.difficulty}</div>
-                                                    <div style={{ fontSize: '0.95em', color: 'var(--neutral-fg-subtle, #523C2A)', marginTop: '4px' }}>{stage.introduction}</div>
-                                                </div>
-                                            </div>
+                                            <StageCard 
+                                                key={`${island.id}-${stage.id}-${idx}`}
+                                                stage={stage}
+                                                thumbnailsUrl={thumbnailsUrl}
+                                                onSelectStage={onSelectStage}
+                                                handleOpenChange={handleOpenChange}
+                                            />
                                         ))}
                                     </div>
                                 </AccordionPanel>

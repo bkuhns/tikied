@@ -2,6 +2,7 @@ export interface Route {
     points: { x: number, y: number }[];
     color: string;
     visible: boolean;
+    cachedSplinePts?: { x: number, y: number }[];
 }
 
 export class RoutesRenderer {
@@ -79,7 +80,10 @@ export class RoutesRenderer {
 
             // Draw Spline
             if (pts.length > 1) {
-                const splinePts = this.computeNaturalCubicSpline(pts, 20);
+                if (!route.cachedSplinePts) {
+                    route.cachedSplinePts = this.computeNaturalCubicSpline(pts, 20);
+                }
+                const splinePts = route.cachedSplinePts;
                 
                 ctx.beginPath();
                 ctx.moveTo(splinePts[0].x, splinePts[0].y);
