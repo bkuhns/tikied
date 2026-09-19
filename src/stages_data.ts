@@ -10,6 +10,23 @@ export interface IslandInfo {
     stages: StageInfo[];
 }
 
+export const CHALLENGE_STAGE_MAP: Record<number, number> = {
+    85: 73,
+    86: 74,
+    87: 75,
+    88: 76,
+    89: 77,
+    90: 78,
+    91: 79,
+    92: 80,
+    93: 81,
+    94: 83
+};
+
+export function getBaseStageId(stageId: number): number {
+    return CHALLENGE_STAGE_MAP[stageId] ?? stageId;
+}
+
 export const ISLANDS: IslandInfo[] = [
     {
         "id": 0,
@@ -205,7 +222,7 @@ export const ISLANDS: IslandInfo[] = [
     },
     {
         "id": 2,
-        "name": "TucTuc Island",
+        "name": "Gati Gati Island",
         "stages": [
             {
                 "id": 73,
@@ -263,6 +280,132 @@ export const ISLANDS: IslandInfo[] = [
                 "introduction": "Volcanic Swirl."
             }
         ]
+    },
+    {
+        "id": 3,
+        "name": "Challenges",
+        "stages": [
+            {
+                "id": 11,
+                "difficulty": "Green Flag",
+                "introduction": "Clear the specified stage without a tower ever upgrading."
+            },
+            {
+                "id": 10,
+                "difficulty": "Gem Hoarder",
+                "introduction": "Clear the specified stage with 25 or more gems."
+            },
+            {
+                "id": 6,
+                "difficulty": "Bomb The Boss",
+                "introduction": "Clear the specified stage using only bombs to destroy the boss."
+            },
+            {
+                "id": 12,
+                "difficulty": "No Crossing",
+                "introduction": "Clear the specified stage without crossing the bridge."
+            },
+            {
+                "id": 9,
+                "difficulty": "4 Tree Rainbow",
+                "introduction": "Perfect clear the specified stage."
+            },
+            {
+                "id": 2,
+                "difficulty": "Get Medieval",
+                "introduction": "Clear the specified stage using only arrows and cannons."
+            },
+            {
+                "id": 3,
+                "difficulty": "Tower Collector",
+                "introduction": "Clear the specified stage building all types of tower."
+            },
+            {
+                "id": 13,
+                "difficulty": "Rainbow Team",
+                "introduction": "Perfect clear the specified stage."
+            },
+            {
+                "id": 14,
+                "difficulty": "Picky Eater",
+                "introduction": "Clear the specified stage without using the fire tower."
+            },
+            {
+                "id": 85,
+                "difficulty": "Get Medieval 2",
+                "introduction": "Clear the specified stage using only arrows and cannons."
+            },
+            {
+                "id": 86,
+                "difficulty": "Mutant",
+                "introduction": "Clear the specified stage with a super-charged boss."
+            },
+            {
+                "id": 88,
+                "difficulty": "Apocalypse Prolapse",
+                "introduction": "Clear the specified stage without letting a single balloon enemy touch the ground."
+            },
+            {
+                "id": 87,
+                "difficulty": "Scrooge 3",
+                "introduction": "Clear the specified stage with a balance of 14,000 worth of coins or more."
+            },
+            {
+                "id": 89,
+                "difficulty": "Kill Off!",
+                "introduction": "Clear the specified stage while defeating 100 enemies with the trap tower."
+            },
+            {
+                "id": 90,
+                "difficulty": "Master Sniper",
+                "introduction": "Clear the specified stage while having only one tower on the screen at a time."
+            },
+            {
+                "id": 91,
+                "difficulty": "Zero Carat 2",
+                "introduction": "Clear the specified stage without using any gems."
+            },
+            {
+                "id": 92,
+                "difficulty": "Demolition Duo",
+                "introduction": "Clear the specified stage while using only cannon and ice towers."
+            },
+            {
+                "id": 93,
+                "difficulty": "Hidden Monument",
+                "introduction": "Clear the specified stage while constructing five Gem towers."
+            },
+            {
+                "id": 94,
+                "difficulty": "Anti-Enemy Rush",
+                "introduction": "Clear the specified stage filled with resistance enemies."
+            },
+            {
+                "id": 50,
+                "difficulty": "Black Flag",
+                "introduction": "Without selling any towers clear the specified stage with all towers upgraded to black. Gem tower is locked!"
+            },
+            {
+                "id": 50,
+                "difficulty": "Scrooge's Return",
+                "introduction": "Clear the specified stage with a balance of 12,000 worth of coins or more."
+            },
+            {
+                "id": 53,
+                "difficulty": "Scrooge",
+                "introduction": "Clear the specified stage with a balance of 10,000 worth of coins or more."
+            },
+            {
+                "id": 44,
+                "difficulty": "Wishing Well",
+                "introduction": "Drop 100 coins into the water and clear the specified stage."
+            },
+            {
+                "id": 43,
+                "difficulty": "Zero Carat",
+                "introduction": "Clear the specified stage without using gems."
+            }
+        ]
     }
 ];
 
@@ -286,6 +429,7 @@ function parseDifficulty(diff: string) {
 }
 
 ISLANDS.forEach(island => {
+    if (island.name === "Challenges") return; // Preserve in-game menu order
     island.stages.sort((a, b) => {
         const aParsed = parseDifficulty(a.difficulty);
         const bParsed = parseDifficulty(b.difficulty);

@@ -2,6 +2,7 @@ import { StageSettings, StageParser } from './stage_parser.js';
 import { Route, RoutesRenderer } from './routes_renderer.js';
 import { PJMArchive } from './pjm_archive.js';
 import { DDSDecoder } from './dds_decoder.js';
+import { getBaseStageId } from './stages_data.js';
 
 export interface SpriteInstance {
     x: number;
@@ -112,8 +113,13 @@ export class PJMArchiveGateway implements GameDataGateway {
     }
 
     async getStageRoutes(stageId: number): Promise<Route[] | null> {
-        const roadPath = `data-common/stage_data/umd/stage${stageId}/road.txt`;
-        const roadBytes = await this.archive.extractFile(this.pkdFile, roadPath);
+        const targetStageId = getBaseStageId(stageId);
+        let roadPath = `data-common/stage_data/umd/stage${stageId}/road.txt`;
+        let roadBytes = await this.archive.extractFile(this.pkdFile, roadPath);
+        if (!roadBytes && stageId !== targetStageId) {
+            roadPath = `data-common/stage_data/umd/stage${targetStageId}/road.txt`;
+            roadBytes = await this.archive.extractFile(this.pkdFile, roadPath);
+        }
         if (!roadBytes) return null;
 
         const text = new TextDecoder().decode(roadBytes);
@@ -123,11 +129,21 @@ export class PJMArchiveGateway implements GameDataGateway {
     }
 
     async getStageDecorations(stageId: number): Promise<StageDecorations | null> {
-        const forestPath = `data-common/stage_data/umd/stage${stageId}/forestpos.txt`;
-        const rockPath = `data-common/stage_data/umd/stage${stageId}/rockpos.txt`;
+        const targetStageId = getBaseStageId(stageId);
+        let forestPath = `data-common/stage_data/umd/stage${stageId}/forestpos.txt`;
+        let rockPath = `data-common/stage_data/umd/stage${stageId}/rockpos.txt`;
         
-        const forestBytes = await this.archive.extractFile(this.pkdFile, forestPath);
-        const rockBytes = await this.archive.extractFile(this.pkdFile, rockPath);
+        let forestBytes = await this.archive.extractFile(this.pkdFile, forestPath);
+        if (!forestBytes && stageId !== targetStageId) {
+            forestPath = `data-common/stage_data/umd/stage${targetStageId}/forestpos.txt`;
+            forestBytes = await this.archive.extractFile(this.pkdFile, forestPath);
+        }
+
+        let rockBytes = await this.archive.extractFile(this.pkdFile, rockPath);
+        if (!rockBytes && stageId !== targetStageId) {
+            rockPath = `data-common/stage_data/umd/stage${targetStageId}/rockpos.txt`;
+            rockBytes = await this.archive.extractFile(this.pkdFile, rockPath);
+        }
         
         const typesToLoad = new Set<string>();
         typesToLoad.add('hud_bar');
@@ -138,8 +154,9 @@ export class PJMArchiveGateway implements GameDataGateway {
         const rocks: SpriteInstance[] = [];
 
         // Populate bridges
-        if (BRIDGE_DATA[stageId.toString()]) {
-            for (const bridge of BRIDGE_DATA[stageId.toString()]) {
+        const bridgeKey = BRIDGE_DATA[stageId.toString()] ? stageId.toString() : targetStageId.toString();
+        if (BRIDGE_DATA[bridgeKey]) {
+            for (const bridge of BRIDGE_DATA[bridgeKey]) {
                 typesToLoad.add(bridge.type);
                 bridges.push({ ...bridge });
             }
@@ -221,8 +238,13 @@ export class PJMArchiveGateway implements GameDataGateway {
     }
 
     async getStageBackground(stageId: number): Promise<ImageData | null> {
-        const bgPath = `data-common/textures/bgdata/bg/stage${stageId}.dds`;
-        const bytes = await this.archive.extractFile(this.pkdFile, bgPath);
+        const targetStageId = getBaseStageId(stageId);
+        let bgPath = `data-common/textures/bgdata/bg/stage${targetStageId}.dds`;
+        let bytes = await this.archive.extractFile(this.pkdFile, bgPath);
+        if (!bytes && targetStageId !== stageId) {
+            bgPath = `data-common/textures/bgdata/bg/stage${stageId}.dds`;
+            bytes = await this.archive.extractFile(this.pkdFile, bgPath);
+        }
         if (!bytes) return null;
         return DDSDecoder.decodeToImageData(bytes, true);
     }

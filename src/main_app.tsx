@@ -12,8 +12,10 @@ import {
     Toast, 
     ToastTitle, 
     ToastBody,
-    FluentProvider 
+    FluentProvider,
+    Button
 } from '@fluentui/react-components';
+import { SlideGridRegular } from '@fluentui/react-icons';
 import { tikiedTheme } from './theme.js';
 
 type ViewState = 'splash' | 'inspector';
@@ -134,6 +136,24 @@ const MainApp: React.FC = () => {
                         pkdFile={pkdFile} setPkdFile={setPkdFile}
                         onLoadArchive={handleLoadArchive}
                     />
+
+                    {gateway && (
+                        <div style={{ marginTop: '20px' }}>
+                            <Button 
+                                appearance="primary"
+                                size="large"
+                                icon={<SlideGridRegular />}
+                                onClick={() => setIsStageSelectOpen(true)}
+                                style={{
+                                    padding: '10px 24px',
+                                    fontSize: '1.1rem',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                Select Stage
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -144,6 +164,7 @@ const MainApp: React.FC = () => {
                     onOpenChange={setIsStageSelectOpen}
                     onSelectStage={handleSelectStageFromSplash}
                     hideTrigger
+                    allowClose={false}
                 />
             )}
             

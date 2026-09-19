@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ISLANDS, StageInfo } from './stages_data.js';
+import { ISLANDS, StageInfo, getBaseStageId } from './stages_data.js';
 import { GameDataGateway } from './editor_api.js';
 import { 
     Button, 
@@ -8,7 +8,13 @@ import {
     DialogSurface, 
     DialogTitle, 
     DialogBody, 
-    DialogContent 
+    DialogContent,
+    DialogActions,
+    Accordion,
+    AccordionItem,
+    AccordionHeader,
+    AccordionPanel,
+    Badge
 } from '@fluentui/react-components';
 import { DismissSquareRegular, CheckmarkSquareFilled, FolderOpenRegular, SlideGridRegular } from '@fluentui/react-icons';
 
@@ -25,7 +31,12 @@ export const DIFFICULTY_DATA: Record<string, { boss: number[], multiply: number[
         multiply: [0.90, 1.00, 1.20],
         count: [0.75, 1.00, 0.85]
     },
-    "TucTuc Island": {
+    "Gati Gati Island": {
+        boss: [0.85, 1.00, 1.10],
+        multiply: [0.90, 1.00, 1.35],
+        count: [0.75, 1.00, 0.80]
+    },
+    "Challenges": {
         boss: [0.85, 1.00, 1.10],
         multiply: [0.90, 1.00, 1.35],
         count: [0.75, 1.00, 0.80]
@@ -143,6 +154,7 @@ interface StageSelectionProps {
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
     hideTrigger?: boolean;
+    allowClose?: boolean;
 }
 
 export const StageSelection: React.FC<StageSelectionProps> = ({ 
@@ -150,10 +162,13 @@ export const StageSelection: React.FC<StageSelectionProps> = ({
     onSelectStage, 
     open: externalOpen, 
     onOpenChange: externalOnOpenChange,
-    hideTrigger = false
+    hideTrigger = false,
+    allowClose = true
 }) => {
+    const modalType = allowClose ? 'modal' : 'alert';
     const [internalOpen, setInternalOpen] = useState(false);
     const [thumbnailsUrl, setThumbnailsUrl] = useState<string | null>(null);
+    const [openItems, setOpenItems] = useState<string[]>(["island-0"]);
 
     const isControlled = externalOpen !== undefined;
     const isOpen = isControlled ? externalOpen : internalOpen;
@@ -163,6 +178,16 @@ export const StageSelection: React.FC<StageSelectionProps> = ({
             externalOnOpenChange?.(newOpen);
         } else {
             setInternalOpen(newOpen);
+        }
+    };
+
+    const handleAccordionToggle = (
+        _event: React.SyntheticEvent, 
+        data: { openItems: unknown[] }
+    ) => {
+        const nextOpen = data.openItems as string[];
+        if (nextOpen.length > 0) {
+            setOpenItems(nextOpen);
         }
     };
 
@@ -189,9 +214,11 @@ export const StageSelection: React.FC<StageSelectionProps> = ({
     }, [gateway, isOpen, thumbnailsUrl]);
 
     const getThumbnailIndex = (stageId: number): number => {
-        if (stageId >= 1 && stageId <= 21) return stageId - 1; // Tiki
-        if (stageId >= 43 && stageId <= 57) return stageId - 22; // Toki
-        if (stageId >= 73 && stageId <= 83) return stageId - 37; // TucTuc
+        const mappedId = getBaseStageId(stageId);
+
+        if (mappedId >= 1 && mappedId <= 21) return mappedId - 1; // Tiki
+        if (mappedId >= 43 && mappedId <= 57) return mappedId - 22; // Toki
+        if (mappedId >= 73 && mappedId <= 83) return mappedId - 37; // Gati Gati
         return 47; // Unknown
     };
 
@@ -225,41 +252,105 @@ export const StageSelection: React.FC<StageSelectionProps> = ({
     };
 
     const dialogContent = (
-        <DialogBody>
+        <DialogBody style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <DialogTitle>Select Stage</DialogTitle>
-            <DialogContent style={{ maxHeight: '65vh', overflowY: 'auto', marginTop: '10px' }}>
-                {ISLANDS.map(island => (
-                    <div key={island.id} style={{ marginBottom: '20px' }}>
-                        <h3 style={{ borderBottom: '2px solid var(--neutral-stroke-2, #BEB28E)', paddingBottom: '5px' }}>{island.name}</h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                            {island.stages.map(stage => (
-                                <div 
-                                    key={stage.id} 
-                                    className="stage-row"
-                                    onClick={() => {
-                                        onSelectStage(stage);
-                                        handleOpenChange(false);
-                                    }}
-                                    style={{ cursor: 'pointer' }}
-                                >
-                                    <div style={getThumbnailStyle(stage.id)}></div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                        <div style={{ fontSize: '1.2em', fontWeight: 'bold' }}>{stage.difficulty}</div>
-                                        <div style={{ fontSize: '1.1em', color: 'var(--neutral-fg-subtle, #523C2A)' }}>{stage.introduction}</div>
+            <DialogContent style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '10px 0 0 0', marginTop: '10px' }}>
+                <Accordion
+                    openItems={openItems}
+                    onToggle={handleAccordionToggle}
+                    collapsible={false}
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '100%',
+                        overflow: 'hidden',
+                        gap: '8px'
+                    }}
+                >
+                    {ISLANDS.map(island => {
+                        const itemValue = `island-${island.id}`;
+                        const isExpanded = openItems.includes(itemValue);
+
+                        return (
+                            <AccordionItem
+                                key={island.id}
+                                value={itemValue}
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    overflow: 'hidden',
+                                    flex: isExpanded ? '1 1 auto' : '0 0 auto',
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--neutral-stroke-2, #BEB28E)',
+                                    backgroundColor: 'var(--neutral-bg-surface, #FAF7EE)'
+                                }}
+                            >
+                                <AccordionHeader size="large">
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', paddingRight: '12px' }}>
+                                        <span style={{ fontWeight: 600, fontSize: '1.1rem' }}>{island.name}</span>
+                                        <Badge appearance="tint" color="brand" shape="rounded">
+                                            {island.stages.length} Stages
+                                        </Badge>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                ))}
+                                </AccordionHeader>
+                                <AccordionPanel style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '10px' }}>
+                                        {island.stages.map((stage, idx) => (
+                                            <div 
+                                                key={`${island.id}-${stage.id}-${idx}`} 
+                                                className="stage-row"
+                                                onClick={() => {
+                                                    onSelectStage(stage);
+                                                    handleOpenChange(false);
+                                                }}
+                                                style={{ 
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    gap: '12px',
+                                                    padding: '8px',
+                                                    borderRadius: '6px',
+                                                    border: '1px solid var(--neutral-stroke-1, #D2C8A8)',
+                                                    backgroundColor: 'var(--neutral-bg-subtle, #F5F0DC)',
+                                                    transition: 'all 0.15s ease'
+                                                }}
+                                            >
+                                                <div style={getThumbnailStyle(stage.id)}></div>
+                                                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                                    <div style={{ fontSize: '1.15em', fontWeight: 'bold' }}>{stage.difficulty}</div>
+                                                    <div style={{ fontSize: '0.95em', color: 'var(--neutral-fg-subtle, #523C2A)', marginTop: '4px' }}>{stage.introduction}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </AccordionPanel>
+                            </AccordionItem>
+                        );
+                    })}
+                </Accordion>
             </DialogContent>
+            {allowClose && (
+                <DialogActions position="end" style={{ paddingTop: '12px', flexShrink: 0 }}>
+                    <DialogTrigger disableButtonEnhancement>
+                        <Button appearance="secondary" onClick={() => handleOpenChange(false)}>Close</Button>
+                    </DialogTrigger>
+                </DialogActions>
+            )}
         </DialogBody>
     );
 
+    const dialogSurfaceStyle: React.CSSProperties = {
+        maxWidth: '850px',
+        width: '90vw',
+        height: '75vh',
+        maxHeight: '700px',
+        display: 'flex',
+        flexDirection: 'column'
+    };
+
     if (hideTrigger) {
         return (
-            <Dialog open={isOpen} onOpenChange={(_, data) => handleOpenChange(data.open)}>
-                <DialogSurface style={{ maxWidth: '800px', width: '90vw' }}>
+            <Dialog modalType={modalType} open={isOpen} onOpenChange={(_, data) => handleOpenChange(data.open)}>
+                <DialogSurface style={dialogSurfaceStyle}>
                     {dialogContent}
                 </DialogSurface>
             </Dialog>
@@ -267,13 +358,14 @@ export const StageSelection: React.FC<StageSelectionProps> = ({
     }
 
     return (
-        <Dialog open={isOpen} onOpenChange={(_, data) => handleOpenChange(data.open)}>
+        <Dialog modalType={modalType} open={isOpen} onOpenChange={(_, data) => handleOpenChange(data.open)}>
             <DialogTrigger disableButtonEnhancement>
                 <Button onClick={() => handleOpenChange(true)} icon={<SlideGridRegular />}>Select Stage</Button>
             </DialogTrigger>
-            <DialogSurface style={{ maxWidth: '800px', width: '90vw' }}>
+            <DialogSurface style={dialogSurfaceStyle}>
                 {dialogContent}
             </DialogSurface>
         </Dialog>
     );
 };
+

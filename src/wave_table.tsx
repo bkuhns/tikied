@@ -68,8 +68,8 @@ export const WaveTable: React.FC<WaveTableProps> = ({ stageId, islandName, diffi
     }
 
     const islandKey = islandName as keyof typeof DIFFICULTY_DATA;
-    // Fallback to TucTuc Island if not found (like in original)
-    const difficultyData = DIFFICULTY_DATA[islandKey] || DIFFICULTY_DATA["TucTuc Island"];
+    // Fallback to Gati Gati Island if not found (like in original)
+    const difficultyData = DIFFICULTY_DATA[islandKey] || DIFFICULTY_DATA["Gati Gati Island"];
     
     const bossMultiplier = difficultyData.boss[difficultyIndex];
     const hpMultiplier = difficultyData.multiply[difficultyIndex];
@@ -203,7 +203,7 @@ export const WaveTable: React.FC<WaveTableProps> = ({ stageId, islandName, diffi
                                                                 backgroundColor: RoutesRenderer.getRouteColor(sub.route),
                                                                 border: '1px solid #000'
                                                             }}></div>
-                                                            {sub.route}
+                                                            {sub.route+1}
                                                         </div>
                                                     ) : '-'}
                                                 </td>
