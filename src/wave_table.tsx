@@ -3,15 +3,26 @@ import { StageSettings } from './stage_parser.js';
 import { GameDataGateway } from './editor_api.js';
 import { RoutesRenderer } from './routes_renderer.js';
 import { DIFFICULTY_DATA } from './shared_components.js';
+import { Button } from '@fluentui/react-components';
+import { PlayRegular } from '@fluentui/react-icons';
 
 interface WaveTableProps {
     stageId: number;
     islandName: string;
     difficultyIndex: number;
     gateway: GameDataGateway;
+    onPreviewWave?: (waveIndex: number) => void;
+    onPreviewAll?: () => void;
 }
 
-export const WaveTable: React.FC<WaveTableProps> = ({ stageId, islandName, difficultyIndex, gateway }) => {
+export const WaveTable: React.FC<WaveTableProps> = ({ 
+    stageId, 
+    islandName, 
+    difficultyIndex, 
+    gateway,
+    onPreviewWave,
+    onPreviewAll
+}) => {
     const [status, setStatus] = useState<string>('');
     const [stageSettings, setStageSettings] = useState<StageSettings | null>(null);
     const [barIconsUrl, setBarIconsUrl] = useState<string | null>(null);
@@ -105,7 +116,19 @@ export const WaveTable: React.FC<WaveTableProps> = ({ stageId, islandName, diffi
             </div>
 
             <div className="section">
-                <h2>Waves ({stageSettings.waves.length})</h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                    <h2 style={{ margin: 0 }}>Waves ({stageSettings.waves.length})</h2>
+                    {onPreviewAll && (
+                        <Button 
+                            size="small" 
+                            appearance="primary" 
+                            icon={<PlayRegular />} 
+                            onClick={onPreviewAll}
+                        >
+                            Preview All Waves
+                        </Button>
+                    )}
+                </div>
                 {stageSettings.waves.map((wave, i) => {
                     const firstMonster = wave.subWaves[0]?.monster;
                     
@@ -149,12 +172,21 @@ export const WaveTable: React.FC<WaveTableProps> = ({ stageId, islandName, diffi
                                             )}
                                         </div>
                                     ) : null}
-                                    <span>Wave {i + 1}</span>
-                                    <span style={{ fontSize: '0.85em', color: '#666', fontWeight: 'normal' }}>
+                                    <span style={{ fontWeight: 'bold' }}>Wave {i + 1}</span>
+                                    <span style={{ fontSize: '0.85em', color: '#666', fontWeight: 'normal', flex: 1 }}>
                                         {wave.startTime !== undefined 
                                             ? `(Start Delay: ${wave.startTime}s)` 
                                             : ''}
                                     </span>
+                                    {onPreviewWave && (
+                                        <Button 
+                                            size="small" 
+                                            appearance="subtle" 
+                                            icon={<PlayRegular />} 
+                                            title={`Preview Wave ${i + 1}`}
+                                            onClick={() => onPreviewWave(i)}
+                                        />
+                                    )}
                                 </div>
                                 <div className="wave-details" style={{ fontSize: '0.85em', color: '#444', fontWeight: 'normal' }}>
                                     {wave.hpUp !== undefined && <span style={{ marginRight: '15px' }}>HP Multiplier: {wave.hpUp}x</span>}

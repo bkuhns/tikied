@@ -16,6 +16,7 @@ export interface SubWave {
     route?: number;
     startTime?: number;
     endTime?: number;
+    carry?: boolean;
 }
 
 export interface WaveInfo {
@@ -191,6 +192,7 @@ export class StageParser {
                     const startMatch = props.match(/start_time\s*=\s*([\d.]+)/);
                     const intervalMatch = props.match(/weight\s*=\s*([\d.]+)/);
                     const onFireMatch = props.match(/on_fire\s*=\s*true/i);
+                    const carryMatch = props.match(/carry\s*=\s*true/i);
                     if (typeMatch) {
                         const monster = StageParser.parseMonsterDef(typeMatch[1], onFireMatch !== null);
                         subWaves.push({
@@ -198,7 +200,8 @@ export class StageParser {
                             count: countMatch ? parseInt(countMatch[1]) : 1,
                             route: routeMatch ? parseInt(routeMatch[1]) : undefined,
                             startTime: startMatch ? parseFloat(startMatch[1]) : undefined,
-                            weight: intervalMatch ? parseFloat(intervalMatch[1]) : undefined
+                            weight: intervalMatch ? parseFloat(intervalMatch[1]) : undefined,
+                            carry: carryMatch !== null
                         });
                     }
                 }

@@ -34,6 +34,12 @@ interface StageInspectorAppProps {
     onBackToSplash: () => void;
 }
 
+export interface PreviewCommand {
+    type: 'ALL' | 'WAVE';
+    waveIndex?: number;
+    timestamp: number;
+}
+
 export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({ 
     gateway, 
     archive, 
@@ -45,12 +51,17 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
     const [selectedStage, setSelectedStage] = useState<StageInfo>(
         initialStage || ISLANDS[0].stages.find(s => s.id === 11) || ISLANDS[0].stages[0]
     );
+    const [previewCommand, setPreviewCommand] = useState<PreviewCommand | null>(null);
 
     useEffect(() => {
         if (initialStage) {
             setSelectedStage(initialStage);
         }
     }, [initialStage]);
+
+    useEffect(() => {
+        setPreviewCommand(null);
+    }, [selectedStage]);
 
     const [difficultyIndex, setDifficultyIndex] = useState<number>(1);
     const [isRepackerOpen, setIsRepackerOpen] = useState(false);
@@ -202,6 +213,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                             routeToggles={routeToggles}
                             onRoutesLoaded={setRouteToggles}
                             onStatusChange={(msg) => handleStatusChange(msg)}
+                            previewCommand={previewCommand}
                         />
                     </div>
 
@@ -245,6 +257,8 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                         islandName={currentIslandName}
                         difficultyIndex={difficultyIndex}
                         gateway={gateway}
+                        onPreviewWave={(idx) => setPreviewCommand({ type: 'WAVE', waveIndex: idx, timestamp: Date.now() })}
+                        onPreviewAll={() => setPreviewCommand({ type: 'ALL', timestamp: Date.now() })}
                     />
                 </aside>
             </div>

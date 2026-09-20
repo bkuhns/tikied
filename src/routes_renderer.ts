@@ -71,6 +71,43 @@ export class RoutesRenderer {
         this.routes = [];
     }
 
+    public getRouteLength(routeIndex: number): number {
+        const route = this.routes[routeIndex];
+        if (!route || route.points.length < 2) return 1.0;
+        let len = 0;
+        for (let i = 0; i < route.points.length - 1; i++) {
+            const p1 = route.points[i];
+            const p2 = route.points[i + 1];
+            const dx = p1.x - p2.x;
+            const dy = p1.y - p2.y;
+            len += Math.sqrt(dx * dx + dy * dy);
+        }
+        return Math.max(0.1, len / 50.0);
+    }
+
+    public getPointOnRoute(routeIndex: number, ratio: number): { x: number; y: number } | null {
+        const route = this.routes[routeIndex];
+        if (!route || route.points.length === 0) return null;
+        if (route.points.length === 1) return { ...route.points[0] };
+
+        if (!route.cachedSplinePts) {
+            route.cachedSplinePts = this.computeNaturalCubicSpline(route.points, 20);
+        }
+        const pts = route.cachedSplinePts;
+        if (pts.length === 0) return null;
+
+        const clampedRatio = Math.max(0, Math.min(1, ratio));
+        const index = clampedRatio * (pts.length - 1);
+        const i0 = Math.floor(index);
+        const i1 = Math.min(pts.length - 1, Math.ceil(index));
+        const frac = index - i0;
+
+        return {
+            x: pts[i0].x + (pts[i1].x - pts[i0].x) * frac,
+            y: pts[i0].y + (pts[i1].y - pts[i0].y) * frac
+        };
+    }
+
     public draw(graphics: Graphics) {
         graphics.clear();
         for (const route of this.routes) {

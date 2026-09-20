@@ -3,6 +3,7 @@ import { Route, RoutesRenderer } from './routes_renderer.js';
 import { PJMArchive } from './pjm_archive.js';
 import { DDSDecoder } from './dds_decoder.js';
 import { getBaseStageId } from './stages_data.js';
+import { ENEMY_SPRITE_PATHS } from './enemy_data.js';
 
 export interface SpriteInstance {
     x: number;
@@ -37,6 +38,7 @@ export interface GameDataGateway {
     getWaterShader(): Promise<string | null>;
     getWaveTexture(): Promise<ImageData | null>;
     getStageThumbnails(): Promise<ImageData | null>;
+    getEnemySpriteTexture(spriteType: string): Promise<ImageData | null>;
 
     // --- Write API ---
     // NOTE: These are stubbed for now and act as no-ops. 
@@ -269,6 +271,14 @@ export class PJMArchiveGateway implements GameDataGateway {
 
     async getStageThumbnails(): Promise<ImageData | null> {
         const bytes = await this.archive.extractFile(this.pkdFile, "data-common/textures/frontend/map/stage_thumbnails.dds");
+        if (!bytes) return null;
+        return DDSDecoder.decodeToImageData(bytes, true);
+    }
+
+    async getEnemySpriteTexture(spriteType: string): Promise<ImageData | null> {
+        const path = ENEMY_SPRITE_PATHS[spriteType];
+        if (!path) return null;
+        const bytes = await this.archive.extractFile(this.pkdFile, path);
         if (!bytes) return null;
         return DDSDecoder.decodeToImageData(bytes, true);
     }

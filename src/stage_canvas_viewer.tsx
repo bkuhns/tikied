@@ -3,6 +3,8 @@ import { GameDataGateway, SpriteInstance } from './editor_api.js';
 import { WebGLWaterRenderer } from './webgl_water.js';
 import { RoutesRenderer, Route } from './routes_renderer.js';
 import { Application, Container, Sprite, Texture, Rectangle, Graphics } from 'pixi.js';
+import type { PreviewCommand } from './stage_inspector_app.js';
+import { ENEMY_KIND_MAP, ENEMY_GRID_DIVISIONS } from './enemy_data.js';
 
 export interface ViewerToggles {
     showTrees: boolean;
@@ -26,6 +28,7 @@ interface StageCanvasViewerProps {
     gateway: GameDataGateway;
     toggles: ViewerToggles;
     routeToggles: RouteToggle[];
+    previewCommand?: PreviewCommand | null;
     onRoutesLoaded?: (routes: RouteToggle[]) => void;
     onStatusChange?: (status: string) => void;
 }
@@ -116,6 +119,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     gateway, 
     toggles, 
     routeToggles,
+    previewCommand,
     onRoutesLoaded,
     onStatusChange
 }) => {
@@ -130,9 +134,36 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     const bgSpriteRef = useRef<Sprite | null>(null);
     const letterboxRef = useRef<Graphics | null>(null);
     const spritesContainerRef = useRef<Container | null>(null);
+    const enemiesContainerRef = useRef<Container | null>(null);
     const routesGraphicsRef = useRef<Graphics | null>(null);
     const hudSpriteRef = useRef<Sprite | null>(null);
     const animatedTreeSpritesRef = useRef<SwayableSprite[]>([]);
+
+    // Preview state refs
+    interface QueuedMonsterSpawn {
+        spawnTime: number;
+        type: string;
+        routeIndex: number;
+        carry: boolean;
+        isOnFire: boolean;
+        isCold: boolean;
+    }
+
+    interface ActiveMonster {
+        sprite: Sprite;
+        balloons?: [Sprite, Sprite, Sprite];
+        routeIndex: number;
+        ratio: number;
+        routeLength: number;
+        maxSpeed: number;
+        speedMultiplier: number;
+    }
+
+    const activeMonstersRef = useRef<ActiveMonster[]>([]);
+    const queuedSpawnsRef = useRef<QueuedMonsterSpawn[]>([]);
+    const previewTimeRef = useRef<number>(0);
+    const isPreviewingRef = useRef<boolean>(false);
+    const loadedEnemyTexturesRef = useRef<Map<string, Texture>>(new Map());
 
     // Textures for background and water
     const bgTextureRef = useRef<Texture | null>(null);
@@ -222,23 +253,26 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
             const bgSprite = new Sprite();
             const letterbox = new Graphics();
             const spritesContainer = new Container();
+            const enemiesContainer = new Container();
             const routesGraphics = new Graphics();
             const hudSprite = new Sprite();
 
             app.stage.addChild(bgSprite);
             app.stage.addChild(letterbox);
             app.stage.addChild(spritesContainer);
+            app.stage.addChild(enemiesContainer);
             app.stage.addChild(routesGraphics);
             app.stage.addChild(hudSprite);
 
             bgSpriteRef.current = bgSprite;
             letterboxRef.current = letterbox;
             spritesContainerRef.current = spritesContainer;
+            enemiesContainerRef.current = enemiesContainer;
             routesGraphicsRef.current = routesGraphics;
             hudSpriteRef.current = hudSprite;
 
-            // Pixi Ticker for water animation and tree sway
-            app.ticker.add(() => {
+            // Pixi Ticker for water animation, tree sway, and wave preview
+            app.ticker.add((ticker) => {
                 const { toggles: t } = togglesRef.current;
                 const scene = sceneRef.current;
 
@@ -276,8 +310,109 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                     }
                 }
 
-                // If animations are off, pause ticker to conserve CPU
-                if (!t.showAnimations && appRef.current) {
+                // 3. Wave Preview Animation Step
+                if (isPreviewingRef.current) {
+                    const dt = ticker.elapsedMS / 1000.0;
+                    previewTimeRef.current += dt;
+
+                    const queued = queuedSpawnsRef.current;
+                    const active = activeMonstersRef.current;
+                    const container = enemiesContainerRef.current;
+
+                    // Spawn ready monsters
+                    while (queued.length > 0 && queued[0].spawnTime <= previewTimeRef.current) {
+                        const item = queued.shift()!;
+                        const kindInfo = ENEMY_KIND_MAP[item.type] || ENEMY_KIND_MAP["basic_ground"];
+                        const tex = loadedEnemyTexturesRef.current.get(kindInfo.sprite_type);
+
+                        if (tex && container) {
+                            const sprite = new Sprite(tex);
+                            sprite.anchor.set(0.5, 0.5);
+
+                            let balloons: [Sprite, Sprite, Sprite] | undefined = undefined;
+
+                            if (item.carry) {
+                                const balloonTex = loadedEnemyTexturesRef.current.get("balloon");
+                                if (balloonTex) {
+                                    const bMid = new Sprite(balloonTex);
+                                    const bLeft = new Sprite(balloonTex);
+                                    const bRight = new Sprite(balloonTex);
+
+                                    bMid.anchor.set(0.5, 1.0);
+                                    bLeft.anchor.set(0.5, 1.0);
+                                    bRight.anchor.set(0.5, 1.0);
+
+                                    bMid.rotation = 0;
+                                    bLeft.rotation = -0.21;
+                                    bRight.rotation = 0.21;
+
+                                    container.addChild(bMid);
+                                    container.addChild(bLeft);
+                                    container.addChild(bRight);
+
+                                    balloons = [bMid, bLeft, bRight];
+                                }
+                            }
+
+                            container.addChild(sprite);
+
+                            const routeLength = routesRenderer.getRouteLength(item.routeIndex);
+                            let speedMultiplier = 1.0;
+                            if (item.isOnFire) speedMultiplier = 1.5;
+                            else if (item.isCold) speedMultiplier = 0.5;
+
+                            active.push({
+                                sprite,
+                                balloons,
+                                routeIndex: item.routeIndex,
+                                ratio: 0.0,
+                                routeLength,
+                                maxSpeed: kindInfo.max_speed,
+                                speedMultiplier
+                            });
+                        }
+                    }
+
+                    // Advance active monsters
+                    for (let i = active.length - 1; i >= 0; i--) {
+                        const m = active[i];
+                        const dRatio = (m.maxSpeed * m.speedMultiplier / m.routeLength) * dt;
+                        m.ratio += dRatio;
+
+                        if (m.ratio >= 1.0) {
+                            if (m.sprite.parent) m.sprite.parent.removeChild(m.sprite);
+                            m.sprite.destroy();
+
+                            if (m.balloons) {
+                                for (const b of m.balloons) {
+                                    if (b.parent) b.parent.removeChild(b);
+                                    b.destroy();
+                                }
+                            }
+                            active.splice(i, 1);
+                        } else {
+                            const pos = routesRenderer.getPointOnRoute(m.routeIndex, m.ratio);
+                            if (pos) {
+                                m.sprite.x = pos.x;
+                                m.sprite.y = pos.y;
+
+                                if (m.balloons) {
+                                    for (const b of m.balloons) {
+                                        b.x = pos.x;
+                                        b.y = pos.y;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (queued.length === 0 && active.length === 0) {
+                        isPreviewingRef.current = false;
+                    }
+                }
+
+                // If animations and preview are off, pause ticker to conserve CPU
+                if (!t.showAnimations && !isPreviewingRef.current && appRef.current) {
                     appRef.current.ticker.stop();
                 }
             });
@@ -293,6 +428,123 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
             }
         };
     }, [webglWaterRenderer, routesRenderer]);
+
+    // Handle Wave Preview Commands
+    useEffect(() => {
+        let isCancelled = false;
+
+        const stopAndClearPreview = () => {
+            if (enemiesContainerRef.current) {
+                enemiesContainerRef.current.removeChildren();
+            }
+            activeMonstersRef.current = [];
+            queuedSpawnsRef.current = [];
+            previewTimeRef.current = 0;
+            isPreviewingRef.current = false;
+        };
+
+        stopAndClearPreview();
+
+        if (!previewCommand) return;
+
+        const runPreview = async () => {
+            const settings = await gateway.getStageSettings(stageId);
+            if (!settings || isCancelled) return;
+
+            if (appRef.current && !appRef.current.ticker.started) {
+                appRef.current.ticker.start();
+            }
+
+            let wavesToRun = settings.waves;
+            if (previewCommand.type === 'WAVE' && previewCommand.waveIndex !== undefined) {
+                const w = settings.waves[previewCommand.waveIndex];
+                wavesToRun = w ? [w] : [];
+            }
+
+            const queued: QueuedMonsterSpawn[] = [];
+            const requiredSpriteTypes = new Set<string>();
+            requiredSpriteTypes.add("balloon");
+
+            let currentTime = 0;
+
+            for (let i = 0; i < wavesToRun.length; i++) {
+                const wave = wavesToRun[i];
+                
+                if (previewCommand.type === 'ALL') {
+                    const waveStartDelay = wave.startTime !== undefined ? wave.startTime : 10.0;
+                    currentTime += waveStartDelay;
+                } else {
+                    currentTime += (wave.startTime ?? 0);
+                }
+
+                const waveStartTime = currentTime;
+
+                for (const subWave of wave.subWaves) {
+                    const subWaveStart = waveStartTime + (subWave.startTime ?? 0);
+                    const count = subWave.count;
+                    const interval = subWave.weight ?? 1.0;
+                    const routeIndex = subWave.route ?? 0;
+                    const monsterDef = subWave.monster;
+                    const kindInfo = ENEMY_KIND_MAP[monsterDef.id] || ENEMY_KIND_MAP["basic_ground"];
+
+                    requiredSpriteTypes.add(kindInfo.sprite_type);
+
+                    for (let k = 0; k < count; k++) {
+                        queued.push({
+                            spawnTime: subWaveStart + (k * interval),
+                            type: monsterDef.id,
+                            routeIndex,
+                            carry: subWave.carry ?? false,
+                            isOnFire: monsterDef.isOnFire,
+                            isCold: monsterDef.isCold
+                        });
+                    }
+                }
+            }
+
+            queued.sort((a, b) => a.spawnTime - b.spawnTime);
+
+            for (const spriteType of requiredSpriteTypes) {
+                if (!loadedEnemyTexturesRef.current.has(spriteType)) {
+                    const imgData = await gateway.getEnemySpriteTexture(spriteType);
+                    if (imgData && !isCancelled) {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = imgData.width;
+                        canvas.height = imgData.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx?.putImageData(imgData, 0, 0);
+                        
+                        const fullTexture = Texture.from(canvas);
+                        const div = ENEMY_GRID_DIVISIONS[spriteType];
+                        if (div && div.cols && div.rows) {
+                            const fw = imgData.width / div.cols;
+                            const fh = imgData.height / div.rows;
+                            const frame0 = new Texture({
+                                source: fullTexture.source,
+                                frame: new Rectangle(0, 0, fw, fh)
+                            });
+                            loadedEnemyTexturesRef.current.set(spriteType, frame0);
+                        } else {
+                            loadedEnemyTexturesRef.current.set(spriteType, fullTexture);
+                        }
+                    }
+                }
+            }
+
+            if (isCancelled) return;
+
+            queuedSpawnsRef.current = queued;
+            previewTimeRef.current = 0;
+            isPreviewingRef.current = true;
+        };
+
+        runPreview();
+
+        return () => {
+            isCancelled = true;
+            stopAndClearPreview();
+        };
+    }, [previewCommand, stageId, gateway]);
 
     // Update scene objects and dimensions when toggles or scene state change
     const updatePixiScene = () => {
