@@ -205,7 +205,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 width: 1024,
                 height: 768,
                 autoDensity: true,
-                resolution: window.devicePixelRatio || 1,
+                resolution: 1,
                 backgroundColor: 0x000000
             });
 
@@ -244,25 +244,19 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
 
                 if (!scene.currentImageData) return;
 
-                let isAnimating = false;
-
-                // 1. Water Texture update (only when water is active)
-                if (t.showWater && waterTextureRef.current) {
-                    webglWaterRenderer.updateAndDraw(t.showAnimations);
+                // 1. Water Texture update (only when water + animations are active)
+                if (t.showWater && waterTextureRef.current && t.showAnimations) {
+                    webglWaterRenderer.updateAndDraw(true);
                     waterTextureRef.current.source.update();
                     if (bgSprite.texture !== waterTextureRef.current) {
                         bgSprite.texture = waterTextureRef.current;
                     }
-                    if (t.showAnimations) isAnimating = true;
-                } else if (bgTextureRef.current) {
-                    if (bgSprite.texture !== bgTextureRef.current) {
-                        bgSprite.texture = bgTextureRef.current;
-                    }
+                } else if (bgTextureRef.current && bgSprite.texture !== bgTextureRef.current) {
+                    bgSprite.texture = bgTextureRef.current;
                 }
 
                 // 2. Tree swaying animation (only when animations active)
                 if (t.showAnimations && animatedTreeSpritesRef.current.length > 0) {
-                    isAnimating = true;
                     const timeSec = performance.now() / 1000.0;
                     for (const sprite of animatedTreeSpritesRef.current) {
                         if (sprite._timeOffset !== undefined && sprite._treeStrength !== undefined && sprite._drawHeight !== undefined && sprite._baseDx !== undefined) {
@@ -282,8 +276,8 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                     }
                 }
 
-                // If no active animations, pause ticker to conserve CPU
-                if (!isAnimating && appRef.current) {
+                // If animations are off, pause ticker to conserve CPU
+                if (!t.showAnimations && appRef.current) {
                     appRef.current.ticker.stop();
                 }
             });
@@ -327,6 +321,8 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
 
         // Background texture
         if (t.showWater && waterTextureRef.current) {
+            webglWaterRenderer.updateAndDraw(t.showAnimations);
+            waterTextureRef.current.source.update();
             bgSprite.texture = waterTextureRef.current;
         } else if (bgTextureRef.current) {
             bgSprite.texture = bgTextureRef.current;
@@ -356,10 +352,15 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
             const sx = (2048 - sw) / 2;
             const dx = (W - sw) / 2;
 
-            const hudFrame = new Texture({
-                source: baseHudTexture.source,
-                frame: new Rectangle(sx, 0, sw, 128)
-            });
+            const hudFrameKey = `hud_bar_frame_${sx}_0_${sw}_128`;
+            let hudFrame = pixiTextureCache.current.get(hudFrameKey);
+            if (!hudFrame) {
+                hudFrame = new Texture({
+                    source: baseHudTexture.source,
+                    frame: new Rectangle(sx, 0, sw, 128)
+                });
+                pixiTextureCache.current.set(hudFrameKey, hudFrame);
+            }
 
             hudSprite.texture = hudFrame;
             hudSprite.x = dx;
@@ -441,10 +442,15 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                         pixiTextureCache.current.set(inst.type, baseTexture);
                     }
 
-                    const frameTexture = new Texture({
-                        source: baseTexture.source,
-                        frame: new Rectangle(sx, sy, spriteWidth, spriteHeight)
-                    });
+                    const frameKey = `${inst.type}_frame_${sx}_${sy}_${spriteWidth}_${spriteHeight}`;
+                    let frameTexture = pixiTextureCache.current.get(frameKey);
+                    if (!frameTexture) {
+                        frameTexture = new Texture({
+                            source: baseTexture.source,
+                            frame: new Rectangle(sx, sy, spriteWidth, spriteHeight)
+                        });
+                        pixiTextureCache.current.set(frameKey, frameTexture);
+                    }
 
                     const sprite = new Sprite(frameTexture);
                     sprite.x = dx;
@@ -489,12 +495,12 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
             }
         }
 
-        // Render static frame once, and start ticker only if animations or water active
+        // Render static frame once, and start ticker only if animations active
         app.render();
 
-        if ((t.showAnimations || t.showWater) && !app.ticker.started) {
+        if (t.showAnimations && !app.ticker.started) {
             app.ticker.start();
-        } else if (!t.showAnimations && !t.showWater && app.ticker.started) {
+        } else if (!t.showAnimations && app.ticker.started) {
             app.ticker.stop();
         }
     };
