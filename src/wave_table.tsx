@@ -4,15 +4,19 @@ import { GameDataGateway } from './editor_api.js';
 import { RoutesRenderer } from './routes_renderer.js';
 import { DIFFICULTY_DATA } from './shared_components.js';
 import { Button } from '@fluentui/react-components';
-import { PlayRegular } from '@fluentui/react-icons';
+import { PlayRegular, StopRegular } from '@fluentui/react-icons';
+import type { PreviewCommand } from './stage_inspector_app.js';
 
 interface WaveTableProps {
     stageId: number;
     islandName: string;
     difficultyIndex: number;
     gateway: GameDataGateway;
+    activePreview?: PreviewCommand | null;
+    currentActiveWaveIndex?: number | null;
     onPreviewWave?: (waveIndex: number) => void;
     onPreviewAll?: () => void;
+    onStopPreview?: () => void;
 }
 
 export const WaveTable: React.FC<WaveTableProps> = ({ 
@@ -20,8 +24,11 @@ export const WaveTable: React.FC<WaveTableProps> = ({
     islandName, 
     difficultyIndex, 
     gateway,
+    activePreview,
+    currentActiveWaveIndex,
     onPreviewWave,
-    onPreviewAll
+    onPreviewAll,
+    onStopPreview
 }) => {
     const [status, setStatus] = useState<string>('');
     const [stageSettings, setStageSettings] = useState<StageSettings | null>(null);
@@ -118,19 +125,32 @@ export const WaveTable: React.FC<WaveTableProps> = ({
             <div className="section">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                     <h2 style={{ margin: 0 }}>Waves ({stageSettings.waves.length})</h2>
-                    {onPreviewAll && (
+                    {activePreview ? (
                         <Button 
                             size="small" 
                             appearance="primary" 
-                            icon={<PlayRegular />} 
-                            onClick={onPreviewAll}
+                            icon={<StopRegular />} 
+                            style={{ backgroundColor: '#F08C18', color: '#ffffff', borderColor: '#F08C18' }}
+                            onClick={onStopPreview}
                         >
-                            Preview All Waves
+                            Stop Preview
                         </Button>
+                    ) : (
+                        onPreviewAll && (
+                            <Button 
+                                size="small" 
+                                appearance="primary" 
+                                icon={<PlayRegular />} 
+                                onClick={onPreviewAll}
+                            >
+                                Preview All Waves
+                            </Button>
+                        )
                     )}
                 </div>
                 {stageSettings.waves.map((wave, i) => {
                     const firstMonster = wave.subWaves[0]?.monster;
+                    const isThisWaveRunning = (activePreview?.type === 'WAVE' && activePreview?.waveIndex === i) || (currentActiveWaveIndex === i);
                     
                     let iconStyle = {};
                     let balloonStyle = {};
@@ -178,14 +198,25 @@ export const WaveTable: React.FC<WaveTableProps> = ({
                                             ? `(Start Delay: ${wave.startTime}s)` 
                                             : ''}
                                     </span>
-                                    {onPreviewWave && (
+                                    {isThisWaveRunning ? (
                                         <Button 
                                             size="small" 
-                                            appearance="subtle" 
-                                            icon={<PlayRegular />} 
-                                            title={`Preview Wave ${i + 1}`}
-                                            onClick={() => onPreviewWave(i)}
+                                            appearance="primary" 
+                                            icon={<StopRegular />} 
+                                            title={`Stop Wave ${i + 1}`}
+                                            style={{ backgroundColor: '#F08C18', color: '#ffffff', borderColor: '#F08C18' }}
+                                            onClick={onStopPreview}
                                         />
+                                    ) : (
+                                        onPreviewWave && (
+                                            <Button 
+                                                size="small" 
+                                                appearance="subtle" 
+                                                icon={<PlayRegular />} 
+                                                title={`Preview Wave ${i + 1}`}
+                                                onClick={() => onPreviewWave(i)}
+                                            />
+                                        )
                                     )}
                                 </div>
                                 <div className="wave-details" style={{ fontSize: '0.85em', color: '#444', fontWeight: 'normal' }}>

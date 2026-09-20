@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { WaveInfo } from './stage_parser.js';
 import { GameDataGateway, SpriteInstance } from './editor_api.js';
 import { WebGLWaterRenderer } from './webgl_water.js';
 import { RoutesRenderer, Route } from './routes_renderer.js';
@@ -29,6 +30,9 @@ interface StageCanvasViewerProps {
     toggles: ViewerToggles;
     routeToggles: RouteToggle[];
     previewCommand?: PreviewCommand | null;
+    onPreviewEnd?: () => void;
+    onActiveWaveChange?: (waveIndex: number | null) => void;
+    onActiveRouteTogglesChange?: (toggles: RouteToggle[] | null) => void;
     onRoutesLoaded?: (routes: RouteToggle[]) => void;
     onStatusChange?: (status: string) => void;
 }
@@ -120,6 +124,9 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     toggles, 
     routeToggles,
     previewCommand,
+    onPreviewEnd,
+    onActiveWaveChange,
+    onActiveRouteTogglesChange,
     onRoutesLoaded,
     onStatusChange
 }) => {
@@ -151,19 +158,30 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
 
     interface ActiveMonster {
         sprite: Sprite;
-        balloons?: [Sprite, Sprite, Sprite];
+        balloon?: Sprite;
         routeIndex: number;
         ratio: number;
         routeLength: number;
         maxSpeed: number;
         speedMultiplier: number;
+        frameTextures: Texture[];
+        balloonTextures?: Texture[];
+        elapsedTime: number;
+        kindInfo: any;
+        isOnFire: boolean;
+        isCold: boolean;
     }
 
     const activeMonstersRef = useRef<ActiveMonster[]>([]);
     const queuedSpawnsRef = useRef<QueuedMonsterSpawn[]>([]);
+    const allWavesRef = useRef<WaveInfo[]>([]);
+    const pendingWavesRef = useRef<WaveInfo[]>([]);
+    const currentWaveRef = useRef<WaveInfo | null>(null);
+    const waveDelayTimerRef = useRef<number>(0);
+    const waveTimeRef = useRef<number>(0);
     const previewTimeRef = useRef<number>(0);
     const isPreviewingRef = useRef<boolean>(false);
-    const loadedEnemyTexturesRef = useRef<Map<string, Texture>>(new Map());
+    const loadedEnemyTexturesRef = useRef<Map<string, Texture[]>>(new Map());
 
     // Textures for background and water
     const bgTextureRef = useRef<Texture | null>(null);
@@ -172,13 +190,18 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     // Callbacks refs
     const onRoutesLoadedRef = useRef(onRoutesLoaded);
     const onStatusChangeRef = useRef(onStatusChange);
+    const onPreviewEndRef = useRef(onPreviewEnd);
+    const onActiveWaveChangeRef = useRef(onActiveWaveChange);
+    const onActiveRouteTogglesChangeRef = useRef(onActiveRouteTogglesChange);
 
     useEffect(() => {
         onRoutesLoadedRef.current = onRoutesLoaded;
         onStatusChangeRef.current = onStatusChange;
-    }, [onRoutesLoaded, onStatusChange]);
+        onPreviewEndRef.current = onPreviewEnd;
+        onActiveWaveChangeRef.current = onActiveWaveChange;
+        onActiveRouteTogglesChangeRef.current = onActiveRouteTogglesChange;
+    }, [onRoutesLoaded, onStatusChange, onPreviewEnd, onActiveWaveChange, onActiveRouteTogglesChange]);
 
-    // Scene state ref
     const sceneRef = useRef({
         currentImageData: null as ImageData | null,
         bgCanvas: null as HTMLCanvasElement | null,
@@ -187,7 +210,8 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
         bridgeInstances: [] as SpriteInstance[],
         objectInstances: [] as SpriteInstance[],
         sortedInstances: [] as SpriteInstance[],
-        sortedInstancesKey: ''
+        sortedInstancesKey: '',
+        environmentPixiSprites: [] as Sprite[]
     });
 
     const togglesRef = useRef({ toggles, routeToggles });
@@ -196,13 +220,55 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
         togglesRef.current = { toggles, routeToggles };
     }, [toggles, routeToggles]);
 
+    const updateRouteVisibility = () => {
+        const routes = routesRenderer.getRoutes();
+        if (routes.length === 0) return;
+
+        let activeRouteIndices: Set<number> | null = null;
+        if (isPreviewingRef.current && currentWaveRef.current) {
+            activeRouteIndices = new Set(
+                currentWaveRef.current.subWaves.map(sw => sw.route ?? 0)
+            );
+        }
+
+        const effectiveToggles: RouteToggle[] = [];
+
+        routes.forEach((r, idx) => {
+            const userVisible = routeToggles[idx] ? routeToggles[idx].visible : true;
+            const color = routeToggles[idx] ? routeToggles[idx].color : (r.color ? `#${r.color.toString(16).padStart(6, '0')}` : '#ffffff');
+            const isVisible = activeRouteIndices !== null ? (userVisible && activeRouteIndices.has(idx)) : userVisible;
+
+            r.visible = isVisible;
+            effectiveToggles.push({
+                id: idx + 1,
+                color,
+                visible: isVisible
+            });
+        });
+
+        if (routesGraphicsRef.current) {
+            if (togglesRef.current.toggles.showRoutes) {
+                routesGraphicsRef.current.visible = true;
+                routesRenderer.draw(routesGraphicsRef.current);
+            } else {
+                routesGraphicsRef.current.visible = false;
+                routesGraphicsRef.current.clear();
+            }
+        }
+
+        if (onActiveRouteTogglesChangeRef.current) {
+            if (activeRouteIndices !== null) {
+                onActiveRouteTogglesChangeRef.current(effectiveToggles);
+            } else {
+                onActiveRouteTogglesChangeRef.current(null);
+            }
+        }
+    };
+
     // Apply route toggles to the RouteRenderer directly when they change
     useEffect(() => {
-        const routes = routesRenderer.getRoutes();
-        if (routes.length === routeToggles.length) {
-            routes.forEach((r, idx) => r.visible = routeToggles[idx].visible);
-        }
-    }, [routeToggles, routesRenderer]);
+        updateRouteVisibility();
+    }, [routeToggles, toggles.showRoutes]);
 
     // Init Shader
     useEffect(() => {
@@ -253,21 +319,20 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
             const bgSprite = new Sprite();
             const letterbox = new Graphics();
             const spritesContainer = new Container();
-            const enemiesContainer = new Container();
+            spritesContainer.sortableChildren = true;
             const routesGraphics = new Graphics();
             const hudSprite = new Sprite();
 
             app.stage.addChild(bgSprite);
             app.stage.addChild(letterbox);
             app.stage.addChild(spritesContainer);
-            app.stage.addChild(enemiesContainer);
             app.stage.addChild(routesGraphics);
             app.stage.addChild(hudSprite);
 
             bgSpriteRef.current = bgSprite;
             letterboxRef.current = letterbox;
             spritesContainerRef.current = spritesContainer;
-            enemiesContainerRef.current = enemiesContainer;
+            enemiesContainerRef.current = spritesContainer; // Enemies now share the sortable sprites container
             routesGraphicsRef.current = routesGraphics;
             hudSpriteRef.current = hudSprite;
 
@@ -313,101 +378,223 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 // 3. Wave Preview Animation Step
                 if (isPreviewingRef.current) {
                     const dt = ticker.elapsedMS / 1000.0;
-                    previewTimeRef.current += dt;
 
-                    const queued = queuedSpawnsRef.current;
-                    const active = activeMonstersRef.current;
-                    const container = enemiesContainerRef.current;
+                    // Check if we need to start the next wave
+                    if (!currentWaveRef.current && pendingWavesRef.current.length > 0) {
+                        if (waveDelayTimerRef.current > 0) {
+                            waveDelayTimerRef.current -= dt;
+                        } else {
+                            // Start wave!
+                            const nextWave = pendingWavesRef.current.shift()!;
+                            currentWaveRef.current = nextWave;
+                            updateRouteVisibility();
+                            
+                            const waveIdx = allWavesRef.current.indexOf(nextWave);
+                            if (onActiveWaveChangeRef.current) {
+                                onActiveWaveChangeRef.current(waveIdx >= 0 ? waveIdx : null);
+                            }
+                            
+                            const queued: QueuedMonsterSpawn[] = [];
+                            const waveStartTime = 0;
 
-                    // Spawn ready monsters
-                    while (queued.length > 0 && queued[0].spawnTime <= previewTimeRef.current) {
-                        const item = queued.shift()!;
-                        const kindInfo = ENEMY_KIND_MAP[item.type] || ENEMY_KIND_MAP["basic_ground"];
-                        const tex = loadedEnemyTexturesRef.current.get(kindInfo.sprite_type);
+                            for (const subWave of nextWave.subWaves) {
+                                const subWaveStart = waveStartTime + (subWave.startTime ?? 0);
+                                const count = subWave.count;
+                                const interval = subWave.weight ?? 1.0;
+                                const routeIndex = subWave.route ?? 0;
+                                const monsterDef = subWave.monster;
 
-                        if (tex && container) {
-                            const sprite = new Sprite(tex);
-                            sprite.anchor.set(0.5, 0.5);
-
-                            let balloons: [Sprite, Sprite, Sprite] | undefined = undefined;
-
-                            if (item.carry) {
-                                const balloonTex = loadedEnemyTexturesRef.current.get("balloon");
-                                if (balloonTex) {
-                                    const bMid = new Sprite(balloonTex);
-                                    const bLeft = new Sprite(balloonTex);
-                                    const bRight = new Sprite(balloonTex);
-
-                                    bMid.anchor.set(0.5, 1.0);
-                                    bLeft.anchor.set(0.5, 1.0);
-                                    bRight.anchor.set(0.5, 1.0);
-
-                                    bMid.rotation = 0;
-                                    bLeft.rotation = -0.21;
-                                    bRight.rotation = 0.21;
-
-                                    container.addChild(bMid);
-                                    container.addChild(bLeft);
-                                    container.addChild(bRight);
-
-                                    balloons = [bMid, bLeft, bRight];
+                                for (let k = 0; k < count; k++) {
+                                    queued.push({
+                                        spawnTime: subWaveStart + (k * interval),
+                                        type: monsterDef.id,
+                                        routeIndex,
+                                        carry: subWave.carry ?? false,
+                                        isOnFire: monsterDef.isOnFire,
+                                        isCold: monsterDef.isCold
+                                    });
                                 }
                             }
 
-                            container.addChild(sprite);
-
-                            const routeLength = routesRenderer.getRouteLength(item.routeIndex);
-                            let speedMultiplier = 1.0;
-                            if (item.isOnFire) speedMultiplier = 1.5;
-                            else if (item.isCold) speedMultiplier = 0.5;
-
-                            active.push({
-                                sprite,
-                                balloons,
-                                routeIndex: item.routeIndex,
-                                ratio: 0.0,
-                                routeLength,
-                                maxSpeed: kindInfo.max_speed,
-                                speedMultiplier
-                            });
+                            queued.sort((a, b) => a.spawnTime - b.spawnTime);
+                            queuedSpawnsRef.current = queued;
+                            waveTimeRef.current = 0;
                         }
                     }
 
-                    // Advance active monsters
-                    for (let i = active.length - 1; i >= 0; i--) {
-                        const m = active[i];
-                        const dRatio = (m.maxSpeed * m.speedMultiplier / m.routeLength) * dt;
-                        m.ratio += dRatio;
+                    if (currentWaveRef.current) {
+                        waveTimeRef.current += dt;
 
-                        if (m.ratio >= 1.0) {
-                            if (m.sprite.parent) m.sprite.parent.removeChild(m.sprite);
-                            m.sprite.destroy();
+                        const queued = queuedSpawnsRef.current;
+                        const active = activeMonstersRef.current;
+                        const container = enemiesContainerRef.current;
 
-                            if (m.balloons) {
-                                for (const b of m.balloons) {
-                                    if (b.parent) b.parent.removeChild(b);
-                                    b.destroy();
+                        // Spawn ready monsters for current wave
+                        while (queued.length > 0 && queued[0].spawnTime <= waveTimeRef.current) {
+                            const item = queued.shift()!;
+                            const kindInfo = ENEMY_KIND_MAP[item.type] || ENEMY_KIND_MAP["basic_ground"];
+                            const texs = loadedEnemyTexturesRef.current.get(kindInfo.sprite_type);
+                            const balloonTexs = loadedEnemyTexturesRef.current.get("balloon");
+
+                            if (texs && texs.length > 0 && container) {
+                                const sprite = new Sprite(texs[0]);
+                                sprite.anchor.set(0.5, 0.5);
+
+                                const scale = kindInfo.screen_size ?? 1.0;
+                                sprite.scale.set(scale, scale);
+
+                                if (item.isOnFire) {
+                                    sprite.tint = 0xFF8844;
+                                } else if (item.isCold) {
+                                    sprite.tint = 0x88CCFF;
                                 }
-                            }
-                            active.splice(i, 1);
-                        } else {
-                            const pos = routesRenderer.getPointOnRoute(m.routeIndex, m.ratio);
-                            if (pos) {
-                                m.sprite.x = pos.x;
-                                m.sprite.y = pos.y;
 
-                                if (m.balloons) {
-                                    for (const b of m.balloons) {
-                                        b.x = pos.x;
-                                        b.y = pos.y;
+                                let balloon: Sprite | undefined = undefined;
+
+                                if (item.carry && balloonTexs && balloonTexs.length > 0) {
+                                    balloon = new Sprite(balloonTexs[0]);
+                                    balloon.anchor.set(0.5, 0.5);
+                                    balloon.rotation = 0;
+                                    container.addChild(balloon);
+                                }
+
+                                container.addChild(sprite);
+
+                                const routeLength = routesRenderer.getRouteLength(item.routeIndex);
+                                let speedMultiplier = 1.0;
+                                if (item.isOnFire) speedMultiplier = 1.5;
+                                else if (item.isCold) speedMultiplier = 0.5;
+
+                                active.push({
+                                    sprite,
+                                    balloon,
+                                    routeIndex: item.routeIndex,
+                                    ratio: 0.0,
+                                    routeLength,
+                                    maxSpeed: kindInfo.max_speed,
+                                    speedMultiplier,
+                                    frameTextures: texs,
+                                    balloonTextures: balloonTexs,
+                                    elapsedTime: 0.0,
+                                    kindInfo,
+                                    isOnFire: item.isOnFire,
+                                    isCold: item.isCold
+                                });
+                            }
+                        }
+
+                        // Advance active monsters
+                        for (let i = active.length - 1; i >= 0; i--) {
+                            const m = active[i];
+                            const dRatio = (m.maxSpeed * m.speedMultiplier / m.routeLength) * dt;
+                            m.ratio += dRatio;
+                            m.elapsedTime += dt;
+
+                            if (m.ratio >= 1.0) {
+                                if (m.sprite.parent) m.sprite.parent.removeChild(m.sprite);
+                                m.sprite.destroy();
+
+                                if (m.balloon) {
+                                    if (m.balloon.parent) m.balloon.parent.removeChild(m.balloon);
+                                    m.balloon.destroy();
+                                }
+                                active.splice(i, 1);
+                            } else {
+                                const pos = routesRenderer.getPointOnRoute(m.routeIndex, m.ratio);
+                                const nextPos = routesRenderer.getPointOnRoute(m.routeIndex, Math.min(1.0, m.ratio + 0.005));
+
+                                if (pos) {
+                                    let posX = pos.x;
+                                    let posY = pos.y;
+                                    const scale = m.kindInfo.screen_size ?? 1.0;
+                                    let scaleX = scale;
+                                    let scaleY = scale;
+                                    let rot = 0.0;
+
+                                    // Direction Mirroring (flip horizontally if moving left)
+                                    if (nextPos && (nextPos.x - pos.x) < -0.01) {
+                                        scaleX = -scale;
+                                    }
+
+                                    // Frame Tileset Cycling
+                                    const fps = m.kindInfo.fps ?? 8;
+                                    const numFrames = m.frameTextures.length;
+                                    if (numFrames > 1 && fps > 0) {
+                                        const frameIdx = Math.floor(m.elapsedTime * fps * m.speedMultiplier) % numFrames;
+                                        if (m.sprite.texture !== m.frameTextures[frameIdx]) {
+                                            m.sprite.texture = m.frameTextures[frameIdx];
+                                        }
+                                    }
+
+                                    // Balloon: Frame 0 (3 balloons), static during preview, 10px up from monster center
+                                    if (m.balloon) {
+                                        m.balloon.x = posX;
+                                        m.balloon.y = posY - 10;
+                                        m.balloon.rotation = 0;
+                                        m.balloon.zIndex = pos.y - 0.1;
+                                    }
+
+                                    // Procedural Transforms by Anim Type
+                                    const animType = m.kindInfo.anim_type;
+
+                                    if (animType === 'rock') {
+                                        // Giant rocking stride
+                                        rot = Math.sin(m.elapsedTime * 6.0) * 0.15;
+                                    } else if (animType === 'boss_hop') {
+                                        // Boss 1 parabolic hopping + ground squish
+                                        const hopY = Math.abs(Math.sin(m.elapsedTime * 4.0)) * 40;
+                                        posY -= hopY;
+                                        const squish = Math.cos(m.elapsedTime * 8.0) * 0.15;
+                                        if (hopY < 5) {
+                                            scaleY = scale * (1.0 - Math.abs(squish));
+                                        }
+                                    } else if (animType === 'fly' || animType === 'boss_fly') {
+                                        // Flying float (Bats, Sycamores, Boss 4)
+                                        // Offset base posY because the texture flip puts their pixels at the bottom of a tall frame
+                                        posY -= (animType === 'boss_fly') ? 64 : 48;
+                                        const floatAmp = (animType === 'boss_fly') ? 8.0 : 6.0;
+                                        posY -= Math.sin(m.elapsedTime * 3.0) * floatAmp;
+                                    } else if (animType === 'scuttle') {
+                                        // Spider micro-jitter
+                                        posX += Math.sin(m.elapsedTime * 20.0) * 1.5;
+                                    } else if (animType === 'boss_pulse') {
+                                        // Boss 2 golem pulse
+                                        scaleY = scale * (1.0 + Math.sin(m.elapsedTime * 4.0) * 0.10);
+                                    }
+
+                                    m.sprite.x = posX;
+                                    m.sprite.y = posY;
+                                    m.sprite.scale.set(scaleX, scaleY);
+                                    m.sprite.rotation = rot;
+                                    m.sprite.zIndex = pos.y; // Ground zIndex
+
+                                    if (m.balloon) {
+                                        m.balloon.x = posX;
+                                        m.balloon.y = posY - 10;
+                                        m.balloon.zIndex = pos.y - 0.1;
                                     }
                                 }
                             }
                         }
-                    }
 
-                    if (queued.length === 0 && active.length === 0) {
-                        isPreviewingRef.current = false;
+                        // Check if current wave is finished (all spawned AND all cleared)
+                        if (queued.length === 0 && active.length === 0) {
+                            currentWaveRef.current = null;
+                            updateRouteVisibility();
+                            if (onActiveWaveChangeRef.current) {
+                                onActiveWaveChangeRef.current(null);
+                            }
+
+                            if (pendingWavesRef.current.length > 0) {
+                                const nextWave = pendingWavesRef.current[0];
+                                waveDelayTimerRef.current = nextWave.startTime !== undefined ? nextWave.startTime : 5.0;
+                            } else {
+                                isPreviewingRef.current = false;
+                                if (onPreviewEndRef.current) {
+                                    onPreviewEndRef.current();
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -434,13 +621,26 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
         let isCancelled = false;
 
         const stopAndClearPreview = () => {
-            if (enemiesContainerRef.current) {
-                enemiesContainerRef.current.removeChildren();
+            for (const m of activeMonstersRef.current) {
+                if (m.sprite.parent) m.sprite.parent.removeChild(m.sprite);
+                m.sprite.destroy();
+                if (m.balloon) {
+                    if (m.balloon.parent) m.balloon.parent.removeChild(m.balloon);
+                    m.balloon.destroy();
+                }
             }
             activeMonstersRef.current = [];
             queuedSpawnsRef.current = [];
+            pendingWavesRef.current = [];
+            currentWaveRef.current = null;
+            waveDelayTimerRef.current = 0;
+            waveTimeRef.current = 0;
             previewTimeRef.current = 0;
             isPreviewingRef.current = false;
+            if (onActiveWaveChangeRef.current) {
+                onActiveWaveChangeRef.current(null);
+            }
+            updateRouteVisibility();
         };
 
         stopAndClearPreview();
@@ -450,6 +650,8 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
         const runPreview = async () => {
             const settings = await gateway.getStageSettings(stageId);
             if (!settings || isCancelled) return;
+
+            allWavesRef.current = settings.waves;
 
             if (appRef.current && !appRef.current.ticker.started) {
                 appRef.current.ticker.start();
@@ -461,48 +663,17 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 wavesToRun = w ? [w] : [];
             }
 
-            const queued: QueuedMonsterSpawn[] = [];
+            if (wavesToRun.length === 0) return;
+
             const requiredSpriteTypes = new Set<string>();
             requiredSpriteTypes.add("balloon");
 
-            let currentTime = 0;
-
-            for (let i = 0; i < wavesToRun.length; i++) {
-                const wave = wavesToRun[i];
-                
-                if (previewCommand.type === 'ALL') {
-                    const waveStartDelay = wave.startTime !== undefined ? wave.startTime : 10.0;
-                    currentTime += waveStartDelay;
-                } else {
-                    currentTime += (wave.startTime ?? 0);
-                }
-
-                const waveStartTime = currentTime;
-
+            for (const wave of wavesToRun) {
                 for (const subWave of wave.subWaves) {
-                    const subWaveStart = waveStartTime + (subWave.startTime ?? 0);
-                    const count = subWave.count;
-                    const interval = subWave.weight ?? 1.0;
-                    const routeIndex = subWave.route ?? 0;
-                    const monsterDef = subWave.monster;
-                    const kindInfo = ENEMY_KIND_MAP[monsterDef.id] || ENEMY_KIND_MAP["basic_ground"];
-
+                    const kindInfo = ENEMY_KIND_MAP[subWave.monster.id] || ENEMY_KIND_MAP["basic_ground"];
                     requiredSpriteTypes.add(kindInfo.sprite_type);
-
-                    for (let k = 0; k < count; k++) {
-                        queued.push({
-                            spawnTime: subWaveStart + (k * interval),
-                            type: monsterDef.id,
-                            routeIndex,
-                            carry: subWave.carry ?? false,
-                            isOnFire: monsterDef.isOnFire,
-                            isCold: monsterDef.isCold
-                        });
-                    }
                 }
             }
-
-            queued.sort((a, b) => a.spawnTime - b.spawnTime);
 
             for (const spriteType of requiredSpriteTypes) {
                 if (!loadedEnemyTexturesRef.current.has(spriteType)) {
@@ -516,25 +687,34 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                         
                         const fullTexture = Texture.from(canvas);
                         const div = ENEMY_GRID_DIVISIONS[spriteType];
+                        const frames: Texture[] = [];
                         if (div && div.cols && div.rows) {
                             const fw = imgData.width / div.cols;
                             const fh = imgData.height / div.rows;
-                            const frame0 = new Texture({
-                                source: fullTexture.source,
-                                frame: new Rectangle(0, 0, fw, fh)
-                            });
-                            loadedEnemyTexturesRef.current.set(spriteType, frame0);
+                            for (let r = 0; r < div.rows; r++) {
+                                for (let c = 0; c < div.cols; c++) {
+                                    frames.push(new Texture({
+                                        source: fullTexture.source,
+                                        frame: new Rectangle(c * fw, r * fh, fw, fh)
+                                    }));
+                                }
+                            }
                         } else {
-                            loadedEnemyTexturesRef.current.set(spriteType, fullTexture);
+                            frames.push(fullTexture);
                         }
+                        loadedEnemyTexturesRef.current.set(spriteType, frames);
                     }
                 }
             }
 
             if (isCancelled) return;
 
-            queuedSpawnsRef.current = queued;
-            previewTimeRef.current = 0;
+            pendingWavesRef.current = [...wavesToRun];
+            currentWaveRef.current = null;
+            
+            const firstWave = wavesToRun[0];
+            waveDelayTimerRef.current = firstWave.startTime !== undefined ? firstWave.startTime : 0.0;
+
             isPreviewingRef.current = true;
         };
 
@@ -647,7 +827,11 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
             scene.sortedInstancesKey = key;
 
             // Rebuild PixiJS Sprites container
-            spritesContainer.removeChildren();
+            for (const sprite of scene.environmentPixiSprites) {
+                if (sprite.parent) sprite.parent.removeChild(sprite);
+                sprite.destroy();
+            }
+            scene.environmentPixiSprites = [];
             animatedTreeSpritesRef.current = [];
 
             for (const inst of scene.sortedInstances) {
@@ -740,7 +924,9 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                         animatedTreeSpritesRef.current.push(swaySprite);
                     }
 
+                    sprite.zIndex = inst.z ?? inst.y;
                     spritesContainer.addChild(sprite);
+                    scene.environmentPixiSprites.push(sprite);
                 } catch (err) {
                     console.error("Error creating sprite for instance:", inst, err);
                 }

@@ -52,6 +52,8 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
         initialStage || ISLANDS[0].stages.find(s => s.id === 11) || ISLANDS[0].stages[0]
     );
     const [previewCommand, setPreviewCommand] = useState<PreviewCommand | null>(null);
+    const [activeWaveIndex, setActiveWaveIndex] = useState<number | null>(null);
+    const [activeRouteToggles, setActiveRouteToggles] = useState<RouteToggle[] | null>(null);
 
     useEffect(() => {
         if (initialStage) {
@@ -61,6 +63,8 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
 
     useEffect(() => {
         setPreviewCommand(null);
+        setActiveWaveIndex(null);
+        setActiveRouteToggles(null);
     }, [selectedStage]);
 
     const [difficultyIndex, setDifficultyIndex] = useState<number>(1);
@@ -214,6 +218,9 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                             onRoutesLoaded={setRouteToggles}
                             onStatusChange={(msg) => handleStatusChange(msg)}
                             previewCommand={previewCommand}
+                            onPreviewEnd={() => setPreviewCommand(null)}
+                            onActiveWaveChange={setActiveWaveIndex}
+                            onActiveRouteTogglesChange={setActiveRouteToggles}
                         />
                     </div>
 
@@ -221,6 +228,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                     <div style={{ flexShrink: 0, backgroundColor: '#111', color: '#fff' }}>
                         <RouteTogglePanel 
                             routeToggles={routeToggles}
+                            activeRouteToggles={activeRouteToggles}
                             onToggleChange={setRouteToggles}
                         />
                     </div>
@@ -257,8 +265,11 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                         islandName={currentIslandName}
                         difficultyIndex={difficultyIndex}
                         gateway={gateway}
+                        activePreview={previewCommand}
+                        currentActiveWaveIndex={activeWaveIndex}
                         onPreviewWave={(idx) => setPreviewCommand({ type: 'WAVE', waveIndex: idx, timestamp: Date.now() })}
                         onPreviewAll={() => setPreviewCommand({ type: 'ALL', timestamp: Date.now() })}
+                        onStopPreview={() => setPreviewCommand(null)}
                     />
                 </aside>
             </div>

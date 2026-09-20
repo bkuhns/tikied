@@ -5,13 +5,16 @@ import { SelectAllOnRegular, SelectAllOffRegular } from '@fluentui/react-icons';
 
 export interface RouteTogglePanelProps {
     routeToggles: RouteToggle[];
+    activeRouteToggles?: RouteToggle[] | null;
     onToggleChange: (newToggles: RouteToggle[]) => void;
 }
 
-export const RouteTogglePanel: React.FC<RouteTogglePanelProps> = ({ routeToggles, onToggleChange }) => {
+export const RouteTogglePanel: React.FC<RouteTogglePanelProps> = ({ routeToggles, activeRouteToggles, onToggleChange }) => {
     if (!routeToggles || routeToggles.length === 0) {
         return <div style={{ padding: '10px' }}>No routes for this stage.</div>;
     }
+
+    const displayedToggles = activeRouteToggles || routeToggles;
 
     const setAll = (state: boolean) => {
         onToggleChange(routeToggles.map(rt => ({ ...rt, visible: state })));
@@ -27,20 +30,23 @@ export const RouteTogglePanel: React.FC<RouteTogglePanelProps> = ({ routeToggles
             
             {/* Right cell: Inline checkboxes */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', alignItems: 'center', flex: 1 }}>
-                {routeToggles.map((rt, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', color: rt.color, fontWeight: 'bold', textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-                        <Checkbox 
-                            checked={rt.visible} 
-                            onChange={(_, data) => {
-                                const newToggles = [...routeToggles];
-                                newToggles[idx] = { ...newToggles[idx], visible: !!data.checked };
-                                onToggleChange(newToggles);
-                            }}
-                            label={`Route ${idx + 1}`}
-                            style={{ color: 'inherit' }}
-                        />
-                    </div>
-                ))}
+                {routeToggles.map((rt, idx) => {
+                    const displayed = displayedToggles[idx] ?? rt;
+                    return (
+                        <div key={idx} style={{ display: 'flex', alignItems: 'center', color: rt.color, fontWeight: 'bold', textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+                            <Checkbox 
+                                checked={displayed.visible} 
+                                onChange={(_, data) => {
+                                    const newToggles = [...routeToggles];
+                                    newToggles[idx] = { ...newToggles[idx], visible: !!data.checked };
+                                    onToggleChange(newToggles);
+                                }}
+                                label={`Route ${idx + 1}`}
+                                style={{ color: 'inherit' }}
+                            />
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
