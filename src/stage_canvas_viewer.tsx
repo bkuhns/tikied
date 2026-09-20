@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { GameDataGateway, SpriteInstance } from './editor_api.js';
 import { WebGLWaterRenderer } from './webgl_water.js';
 import { RoutesRenderer, Route } from './routes_renderer.js';
+import { Application, Container, Sprite, Texture, Rectangle, Graphics } from 'pixi.js';
 
 export interface ViewerToggles {
     showTrees: boolean;
@@ -103,14 +104,11 @@ const NEGATIVE_ROCK_MAPPING: Record<number, number> = {
     "-7": 8
 };
 
-// Global scratch canvas
-let scratchCanvas: HTMLCanvasElement | null = null;
-let scratchCtx: CanvasRenderingContext2D | null = null;
-if (typeof document !== 'undefined') {
-    scratchCanvas = document.createElement('canvas');
-    scratchCanvas.width = 128;
-    scratchCanvas.height = 128;
-    scratchCtx = scratchCanvas.getContext('2d');
+interface SwayableSprite extends Sprite {
+    _timeOffset?: number;
+    _treeStrength?: number;
+    _drawHeight?: number;
+    _baseDx?: number;
 }
 
 export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({ 
@@ -122,12 +120,25 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     onStatusChange
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const appRef = useRef<Application | null>(null);
     const webglWaterRenderer = useMemo(() => new WebGLWaterRenderer(), []);
     const routesRenderer = useMemo(() => new RoutesRenderer(), []);
     const spriteCache = useRef(new Map<string, HTMLCanvasElement>());
-    const tintedSpriteCache = useRef(new Map<string, HTMLCanvasElement>());
+    const pixiTextureCache = useRef(new Map<string, Texture>());
 
-    // Refs for callbacks
+    // Display objects refs
+    const bgSpriteRef = useRef<Sprite | null>(null);
+    const letterboxRef = useRef<Graphics | null>(null);
+    const spritesContainerRef = useRef<Container | null>(null);
+    const routesGraphicsRef = useRef<Graphics | null>(null);
+    const hudSpriteRef = useRef<Sprite | null>(null);
+    const animatedTreeSpritesRef = useRef<SwayableSprite[]>([]);
+
+    // Textures for background and water
+    const bgTextureRef = useRef<Texture | null>(null);
+    const waterTextureRef = useRef<Texture | null>(null);
+
+    // Callbacks refs
     const onRoutesLoadedRef = useRef(onRoutesLoaded);
     const onStatusChangeRef = useRef(onStatusChange);
 
@@ -149,7 +160,6 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
     });
 
     const togglesRef = useRef({ toggles, routeToggles });
-    const renderRef = useRef<() => void>(() => {});
 
     useEffect(() => {
         togglesRef.current = { toggles, routeToggles };
@@ -181,208 +191,317 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
         initShader();
     }, [gateway, webglWaterRenderer]);
 
-    // Render loop
+    // Initialize PixiJS Application
     useEffect(() => {
-        let renderRafId: number | null = null;
-        let isCancelled = false;
+        let isMounted = true;
+        let app: Application | null = null;
 
-        function drawSprite(ctx: CanvasRenderingContext2D, inst: SpriteInstance, timeSec: number) {
-            try {
-                const sheet = spriteCache.current.get(inst.type);
-                const meta = SPRITE_SHEETS[inst.type];
-                if (!sheet || !meta) return;
+        const initPixi = async () => {
+            if (!canvasRef.current) return;
 
-                const spriteWidth = meta.w;
-                const spriteHeight = meta.h;
-                let cols = Math.floor(sheet.width / spriteWidth);
-                let rows = Math.floor(sheet.height / spriteHeight);
-                
-                if (gridOverrides[inst.type]) {
-                    cols = gridOverrides[inst.type].cols;
-                    rows = gridOverrides[inst.type].rows;
-                }
-                
-                const totalFrames = cols * rows;
-                
-                let ani = inst.ani;
-                if (inst.type.startsWith("rock") && ani < 0) {
-                    ani = NEGATIVE_ROCK_MAPPING[ani] ?? 0;
-                }
-                ani = Math.max(0, ani) % Math.max(1, totalFrames);
+            app = new Application();
+            await app.init({
+                canvas: canvasRef.current,
+                width: 1024,
+                height: 768,
+                autoDensity: true,
+                resolution: window.devicePixelRatio || 1,
+                backgroundColor: 0x000000
+            });
 
-                let row = Math.floor(ani / cols);
-                let col = ani % cols;
-                
-                const sx = col * spriteWidth;
-                row = (rows - 1) - row;  
-                const sy = row * spriteHeight;
-
-                const scale = inst.scale ?? 1.0;
-                const drawWidth = spriteWidth * scale;
-                const drawHeight = spriteHeight * scale;
-
-                const dx = inst.x - (drawWidth / 2);
-                const dy = inst.y - (drawHeight / 2);
-
-                // Tint caching
-                const isTinted = inst.r < 0.99 || inst.g < 0.99 || inst.b < 0.99;
-                let drawSource: HTMLCanvasElement = sheet;
-                let sxDraw = sx;
-                let syDraw = sy;
-
-                if (isTinted) {
-                    const rFixed = Math.round(inst.r * 255);
-                    const gFixed = Math.round(inst.g * 255);
-                    const bFixed = Math.round(inst.b * 255);
-                    const tintKey = `${inst.type}_${ani}_${rFixed}_${gFixed}_${bFixed}`;
-                    
-                    let cachedTinted = tintedSpriteCache.current.get(tintKey);
-                    if (!cachedTinted) {
-                        cachedTinted = document.createElement('canvas');
-                        cachedTinted.width = spriteWidth;
-                        cachedTinted.height = spriteHeight;
-                        const tCtx = cachedTinted.getContext('2d')!;
-                        
-                        tCtx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, 0, 0, spriteWidth, spriteHeight);
-                        tCtx.globalCompositeOperation = 'multiply';
-                        tCtx.fillStyle = `rgb(${rFixed}, ${gFixed}, ${bFixed})`;
-                        tCtx.fillRect(0, 0, spriteWidth, spriteHeight);
-                        tCtx.globalCompositeOperation = 'destination-in';
-                        tCtx.drawImage(sheet, sx, sy, spriteWidth, spriteHeight, 0, 0, spriteWidth, spriteHeight);
-                        
-                        tintedSpriteCache.current.set(tintKey, cachedTinted);
-                    }
-                    drawSource = cachedTinted;
-                    sxDraw = 0;
-                    syDraw = 0;
-                }
-
-                const { toggles: t } = togglesRef.current;
-
-                if (t.showAnimations && inst.type.startsWith("tree_")) {
-                    if ((inst as any)._timeOffset === undefined) {
-                        const rand1 = Math.abs((Math.sin(inst.x * 12.9898 + inst.y * 78.233) * 43758.5453) % 1.0);
-                        const rand2 = Math.abs((Math.cos(inst.x * 4.141 + inst.y * 67.342) * 23145.2413) % 1.0);
-                        (inst as any)._timeOffset = rand1 * Math.PI * 2;
-                        (inst as any)._treeStrength = 0.4 + (rand2 * 0.6);
-                    }
-
-                    const speed = 0.75; 
-                    const baseSway = Math.sin((timeSec * speed) + (inst as any)._timeOffset);
-                    const swayAngle = baseSway * 0.04 * (inst as any)._treeStrength;
-
-                    if (Math.abs(swayAngle) > 0.001) {
-                        ctx.setTransform(1, 0, swayAngle, 1, dx - (swayAngle * drawHeight), dy);
-                        if (inst.alpha !== undefined && inst.alpha < 0.99) {
-                            ctx.globalAlpha = inst.alpha;
-                        }
-                        ctx.drawImage(drawSource, sxDraw, syDraw, spriteWidth, spriteHeight, 0, 0, drawWidth, drawHeight);
-                        ctx.setTransform(1, 0, 0, 1, 0, 0);
-                        if (inst.alpha !== undefined && inst.alpha < 0.99) {
-                            ctx.globalAlpha = 1.0;
-                        }
-                        return;
-                    }
-                }
-
-                if (inst.alpha !== undefined && inst.alpha < 0.99) {
-                    ctx.globalAlpha = inst.alpha;
-                    ctx.drawImage(drawSource, sxDraw, syDraw, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
-                    ctx.globalAlpha = 1.0;
-                } else {
-                    ctx.drawImage(drawSource, sxDraw, syDraw, spriteWidth, spriteHeight, dx, dy, drawWidth, drawHeight);
-                }
-            } catch (e: any) {
-                console.error("Error drawing sprite:", e);
-            }
-        }
-        
-        function render() {
-            if (isCancelled) return;
-            if (renderRafId) {
-                cancelAnimationFrame(renderRafId);
-                renderRafId = null;
-            }
-
-            const canvas = canvasRef.current;
-            const ctx = canvas?.getContext('2d');
-            const scene = sceneRef.current;
-            const { toggles: t } = togglesRef.current;
-
-            if (!canvas || !ctx || !scene.currentImageData) {
-                if (t.showAnimations) {
-                    renderRafId = requestAnimationFrame(render);
-                }
+            if (!isMounted) {
+                app.destroy(true);
                 return;
             }
-            
-            const W = scene.currentImageData.width;
-            let H = scene.currentImageData.height;
-            if (t.showHudBar) {
-                H = Math.round(W * (9 / 16));
+
+            // Cap framerate
+            app.ticker.maxFPS = 30;
+
+            appRef.current = app;
+
+            const bgSprite = new Sprite();
+            const letterbox = new Graphics();
+            const spritesContainer = new Container();
+            const routesGraphics = new Graphics();
+            const hudSprite = new Sprite();
+
+            app.stage.addChild(bgSprite);
+            app.stage.addChild(letterbox);
+            app.stage.addChild(spritesContainer);
+            app.stage.addChild(routesGraphics);
+            app.stage.addChild(hudSprite);
+
+            bgSpriteRef.current = bgSprite;
+            letterboxRef.current = letterbox;
+            spritesContainerRef.current = spritesContainer;
+            routesGraphicsRef.current = routesGraphics;
+            hudSpriteRef.current = hudSprite;
+
+            // Pixi Ticker for water animation and tree sway
+            app.ticker.add(() => {
+                const { toggles: t } = togglesRef.current;
+                const scene = sceneRef.current;
+
+                if (!scene.currentImageData) return;
+
+                let isAnimating = false;
+
+                // 1. Water Texture update (only when water is active)
+                if (t.showWater && waterTextureRef.current) {
+                    webglWaterRenderer.updateAndDraw(t.showAnimations);
+                    waterTextureRef.current.source.update();
+                    if (bgSprite.texture !== waterTextureRef.current) {
+                        bgSprite.texture = waterTextureRef.current;
+                    }
+                    if (t.showAnimations) isAnimating = true;
+                } else if (bgTextureRef.current) {
+                    if (bgSprite.texture !== bgTextureRef.current) {
+                        bgSprite.texture = bgTextureRef.current;
+                    }
+                }
+
+                // 2. Tree swaying animation (only when animations active)
+                if (t.showAnimations && animatedTreeSpritesRef.current.length > 0) {
+                    isAnimating = true;
+                    const timeSec = performance.now() / 1000.0;
+                    for (const sprite of animatedTreeSpritesRef.current) {
+                        if (sprite._timeOffset !== undefined && sprite._treeStrength !== undefined && sprite._drawHeight !== undefined && sprite._baseDx !== undefined) {
+                            const speed = 0.75;
+                            const baseSway = Math.sin((timeSec * speed) + sprite._timeOffset);
+                            const swayAngle = baseSway * 0.04 * sprite._treeStrength;
+                            sprite.skew.x = swayAngle;
+                            sprite.x = sprite._baseDx - (swayAngle * sprite._drawHeight);
+                        }
+                    }
+                } else if (animatedTreeSpritesRef.current.length > 0) {
+                    for (const sprite of animatedTreeSpritesRef.current) {
+                        sprite.skew.x = 0;
+                        if (sprite._baseDx !== undefined) {
+                            sprite.x = sprite._baseDx;
+                        }
+                    }
+                }
+
+                // If no active animations, pause ticker to conserve CPU
+                if (!isAnimating && appRef.current) {
+                    appRef.current.ticker.stop();
+                }
+            });
+        };
+
+        initPixi();
+
+        return () => {
+            isMounted = false;
+            if (app) {
+                app.destroy(true);
+                appRef.current = null;
+            }
+        };
+    }, [webglWaterRenderer, routesRenderer]);
+
+    // Update scene objects and dimensions when toggles or scene state change
+    const updatePixiScene = () => {
+        const app = appRef.current;
+        const scene = sceneRef.current;
+        const { toggles: t } = togglesRef.current;
+        const spritesContainer = spritesContainerRef.current;
+        const bgSprite = bgSpriteRef.current;
+        const letterbox = letterboxRef.current;
+        const hudSprite = hudSpriteRef.current;
+        const routesGraphics = routesGraphicsRef.current;
+
+        if (!app || !scene.currentImageData || !spritesContainer || !bgSprite || !letterbox || !hudSprite || !routesGraphics) {
+            return;
+        }
+
+        const W = scene.currentImageData.width;
+        let H = scene.currentImageData.height;
+        if (t.showHudBar) {
+            H = Math.round(W * (9 / 16));
+        }
+
+        if (app.renderer.width !== W || app.renderer.height !== H) {
+            app.renderer.resize(W, H);
+        }
+
+        // Background texture
+        if (t.showWater && waterTextureRef.current) {
+            bgSprite.texture = waterTextureRef.current;
+        } else if (bgTextureRef.current) {
+            bgSprite.texture = bgTextureRef.current;
+        }
+
+        // Letterbox bar at bottom if H > bg image height
+        if (H > scene.currentImageData.height) {
+            letterbox.clear();
+            letterbox.rect(0, scene.currentImageData.height, W, H - scene.currentImageData.height);
+            letterbox.fill({ color: 0x000000 });
+            letterbox.visible = true;
+        } else {
+            letterbox.visible = false;
+            letterbox.clear();
+        }
+
+        // HUD Bar
+        if (t.showHudBar && spriteCache.current.has('hud_bar')) {
+            const barCanvas = spriteCache.current.get('hud_bar')!;
+            let baseHudTexture = pixiTextureCache.current.get('hud_bar');
+            if (!baseHudTexture) {
+                baseHudTexture = Texture.from(barCanvas);
+                pixiTextureCache.current.set('hud_bar', baseHudTexture);
             }
 
-            if (canvas.width !== W) canvas.width = W;
-            if (canvas.height !== H) canvas.height = H;
-            
-            if (t.showWater) {
-                webglWaterRenderer.updateAndDraw(t.showAnimations);
-                ctx.drawImage(webglWaterRenderer.getCanvas(), 0, 0);
-            } else if (scene.bgCanvas) {
-                ctx.drawImage(scene.bgCanvas, 0, 0);
-            } else {
-                ctx.putImageData(scene.currentImageData, 0, 0);
-            }
-            
-            if (H > scene.currentImageData.height) {
-                ctx.fillStyle = 'black';
-                ctx.fillRect(0, scene.currentImageData.height, W, H - scene.currentImageData.height);
-            }
+            const sw = Math.min(W, 2048);
+            const sx = (2048 - sw) / 2;
+            const dx = (W - sw) / 2;
 
-            // Cache sorted instances list unless toggles or scene changed
-            const key = `${t.showBridges ? 1 : 0}${t.showTrees ? 1 : 0}${t.showRocks ? 1 : 0}${t.showObjects ? 1 : 0}`;
-            if (scene.sortedInstancesKey !== key) {
-                const allInstances: SpriteInstance[] = [];
-                if (t.showBridges) allInstances.push(...scene.bridgeInstances);
-                if (t.showTrees) allInstances.push(...scene.treeInstances);
-                if (t.showRocks) allInstances.push(...scene.rockInstances);
-                if (t.showObjects) allInstances.push(...scene.objectInstances);
-                
-                allInstances.sort((a, b) => (a.z ?? a.y) - (b.z ?? b.y));
-                scene.sortedInstances = allInstances;
-                scene.sortedInstancesKey = key;
-            }
+            const hudFrame = new Texture({
+                source: baseHudTexture.source,
+                frame: new Rectangle(sx, 0, sw, 128)
+            });
 
-            const timeSec = performance.now() / 1000.0;
+            hudSprite.texture = hudFrame;
+            hudSprite.x = dx;
+            hudSprite.y = H - 113;
+            hudSprite.width = sw;
+            hudSprite.height = 128;
+            hudSprite.visible = true;
+        } else {
+            hudSprite.visible = false;
+        }
+
+        // Render routes (on-demand only, not every tick!)
+        if (t.showRoutes) {
+            routesGraphics.visible = true;
+            routesRenderer.draw(routesGraphics);
+        } else {
+            routesGraphics.visible = false;
+            routesGraphics.clear();
+        }
+
+        // Rebuild sorted instances list
+        const key = `${t.showBridges ? 1 : 0}${t.showTrees ? 1 : 0}${t.showRocks ? 1 : 0}${t.showObjects ? 1 : 0}`;
+        if (scene.sortedInstancesKey !== key) {
+            const allInstances: SpriteInstance[] = [];
+            if (t.showBridges) allInstances.push(...scene.bridgeInstances);
+            if (t.showTrees) allInstances.push(...scene.treeInstances);
+            if (t.showRocks) allInstances.push(...scene.rockInstances);
+            if (t.showObjects) allInstances.push(...scene.objectInstances);
+
+            allInstances.sort((a, b) => (a.z ?? a.y) - (b.z ?? b.y));
+            scene.sortedInstances = allInstances;
+            scene.sortedInstancesKey = key;
+
+            // Rebuild PixiJS Sprites container
+            spritesContainer.removeChildren();
+            animatedTreeSpritesRef.current = [];
+
             for (const inst of scene.sortedInstances) {
-                drawSprite(ctx, inst, timeSec);
-            }
+                try {
+                    const sheetCanvas = spriteCache.current.get(inst.type);
+                    const meta = SPRITE_SHEETS[inst.type];
+                    if (!sheetCanvas || !meta) continue;
 
-            if (t.showRoutes) {
-                routesRenderer.draw(ctx);
-            }
+                    const spriteWidth = meta.w;
+                    const spriteHeight = meta.h;
+                    let cols = Math.floor(sheetCanvas.width / spriteWidth);
+                    let rows = Math.floor(sheetCanvas.height / spriteHeight);
 
-            if (t.showHudBar && spriteCache.current.has('hud_bar')) {
-                const barCanvas = spriteCache.current.get('hud_bar')!;
-                const sw = Math.min(W, 2048);
-                const sx = (2048 - sw) / 2;
-                const dx = (W - sw) / 2;
-                ctx.drawImage(barCanvas, sx, 0, sw, 128, dx, H - 113, sw, 128);
-            }
-            
-            if (t.showAnimations) {
-                renderRafId = requestAnimationFrame(render);
+                    if (gridOverrides[inst.type]) {
+                        cols = gridOverrides[inst.type].cols;
+                        rows = gridOverrides[inst.type].rows;
+                    }
+
+                    const totalFrames = cols * rows;
+
+                    let ani = inst.ani;
+                    if (inst.type.startsWith("rock") && ani < 0) {
+                        ani = NEGATIVE_ROCK_MAPPING[ani] ?? 0;
+                    }
+                    ani = Math.max(0, ani) % Math.max(1, totalFrames);
+
+                    let row = Math.floor(ani / cols);
+                    let col = ani % cols;
+
+                    const sx = col * spriteWidth;
+                    row = (rows - 1) - row;
+                    const sy = row * spriteHeight;
+
+                    const scale = inst.scale ?? 1.0;
+                    const drawWidth = spriteWidth * scale;
+                    const drawHeight = spriteHeight * scale;
+
+                    const dx = inst.x - (drawWidth / 2);
+                    const dy = inst.y - (drawHeight / 2);
+
+                    let baseTexture = pixiTextureCache.current.get(inst.type);
+                    if (!baseTexture) {
+                        baseTexture = Texture.from(sheetCanvas);
+                        pixiTextureCache.current.set(inst.type, baseTexture);
+                    }
+
+                    const frameTexture = new Texture({
+                        source: baseTexture.source,
+                        frame: new Rectangle(sx, sy, spriteWidth, spriteHeight)
+                    });
+
+                    const sprite = new Sprite(frameTexture);
+                    sprite.x = dx;
+                    sprite.y = dy;
+                    sprite.width = drawWidth;
+                    sprite.height = drawHeight;
+
+                    // Native GPU Tinting with clamping
+                    const isTinted = inst.r < 0.99 || inst.g < 0.99 || inst.b < 0.99;
+                    if (isTinted) {
+                        const rFixed = Math.min(255, Math.max(0, Math.round((Number.isNaN(inst.r) ? 1 : inst.r) * 255)));
+                        const gFixed = Math.min(255, Math.max(0, Math.round((Number.isNaN(inst.g) ? 1 : inst.g) * 255)));
+                        const bFixed = Math.min(255, Math.max(0, Math.round((Number.isNaN(inst.b) ? 1 : inst.b) * 255)));
+
+                        sprite.tint = (rFixed << 16) | (gFixed << 8) | bFixed;
+                    }
+
+                    if (inst.alpha !== undefined && inst.alpha < 0.99) {
+                        sprite.alpha = inst.alpha;
+                    }
+
+                    if (inst.type.startsWith("tree_")) {
+                        if ((inst as any)._timeOffset === undefined) {
+                            const rand1 = Math.abs((Math.sin(inst.x * 12.9898 + inst.y * 78.233) * 43758.5453) % 1.0);
+                            const rand2 = Math.abs((Math.cos(inst.x * 4.141 + inst.y * 67.342) * 23145.2413) % 1.0);
+                            (inst as any)._timeOffset = rand1 * Math.PI * 2;
+                            (inst as any)._treeStrength = 0.4 + (rand2 * 0.6);
+                        }
+
+                        const swaySprite = sprite as SwayableSprite;
+                        swaySprite._timeOffset = (inst as any)._timeOffset;
+                        swaySprite._treeStrength = (inst as any)._treeStrength;
+                        swaySprite._drawHeight = drawHeight;
+                        swaySprite._baseDx = dx;
+                        animatedTreeSpritesRef.current.push(swaySprite);
+                    }
+
+                    spritesContainer.addChild(sprite);
+                } catch (err) {
+                    console.error("Error creating sprite for instance:", inst, err);
+                }
             }
         }
 
-        renderRef.current = render;
-        render();
+        // Render static frame once, and start ticker only if animations or water active
+        app.render();
 
-        return () => {
-            isCancelled = true;
-            if (renderRafId) cancelAnimationFrame(renderRafId);
-        };
-    }, [toggles, routeToggles, webglWaterRenderer, routesRenderer]);
+        if ((t.showAnimations || t.showWater) && !app.ticker.started) {
+            app.ticker.start();
+        } else if (!t.showAnimations && !t.showWater && app.ticker.started) {
+            app.ticker.stop();
+        }
+    };
+
+    useEffect(() => {
+        updatePixiScene();
+    }, [toggles, routeToggles]);
 
     // Load Data
     useEffect(() => {
@@ -401,12 +520,16 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 bgCanvas.height = bgImgData.height;
                 bgCanvas.getContext('2d')!.putImageData(bgImgData, 0, 0);
                 sceneRef.current.bgCanvas = bgCanvas;
+                bgTextureRef.current = Texture.from(bgCanvas);
+
                 webglWaterRenderer.setStageTexture(bgImgData);
                 
                 const waveImgData = await gateway.getWaveTexture();
                 if (waveImgData) {
                     webglWaterRenderer.setWaveTexture(waveImgData);
                 }
+
+                waterTextureRef.current = Texture.from(webglWaterRenderer.getCanvas());
 
                 if (onStatusChangeRef.current) onStatusChangeRef.current(`Extracting Stage ${stageId} routes...`);
                 const routes = await gateway.getStageRoutes(stageId);
@@ -424,8 +547,8 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 const decorations = await gateway.getStageDecorations(stageId);
                 if (decorations) {
                     sceneRef.current.sortedInstancesKey = '';
-                tintedSpriteCache.current.clear();
-                sceneRef.current.treeInstances = decorations.trees;
+                    pixiTextureCache.current.clear();
+                    sceneRef.current.treeInstances = decorations.trees;
                     sceneRef.current.bridgeInstances = decorations.bridges;
                     sceneRef.current.objectInstances = decorations.objects;
                     sceneRef.current.rockInstances = decorations.rocks;
@@ -447,7 +570,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 }
 
                 if (onStatusChangeRef.current) onStatusChangeRef.current(`Successfully loaded Stage ${stageId}!`);
-                renderRef.current();
+                updatePixiScene();
             } catch (e: any) {
                 if (onStatusChangeRef.current) onStatusChangeRef.current("Error: " + e.message);
                 console.error(e);
@@ -457,6 +580,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                 sceneRef.current.rockInstances = [];
                 sceneRef.current.bridgeInstances = [];
                 sceneRef.current.objectInstances = [];
+                updatePixiScene();
             }
         };
 

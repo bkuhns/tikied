@@ -1,3 +1,5 @@
+import { Graphics } from 'pixi.js';
+
 export interface Route {
     points: { x: number, y: number }[];
     color: string;
@@ -69,14 +71,12 @@ export class RoutesRenderer {
         this.routes = [];
     }
 
-    public draw(ctx: CanvasRenderingContext2D) {
+    public draw(graphics: Graphics) {
+        graphics.clear();
         for (const route of this.routes) {
             if (!route.visible || route.points.length === 0) continue;
 
             const pts = route.points;
-            ctx.strokeStyle = route.color;
-            ctx.fillStyle = route.color;
-            ctx.lineWidth = 4;
 
             // Draw Spline
             if (pts.length > 1) {
@@ -85,21 +85,19 @@ export class RoutesRenderer {
                 }
                 const splinePts = route.cachedSplinePts;
                 
-                ctx.beginPath();
-                ctx.moveTo(splinePts[0].x, splinePts[0].y);
+                graphics.moveTo(splinePts[0].x, splinePts[0].y);
                 for (let i = 1; i < splinePts.length; i++) {
-                    ctx.lineTo(splinePts[i].x, splinePts[i].y);
+                    graphics.lineTo(splinePts[i].x, splinePts[i].y);
                 }
-                ctx.stroke();
+                graphics.stroke({ width: 4, color: route.color });
             }
 
             // Draw Control Points
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = "rgb(0, 0, 0)";
             for (const pt of pts) {
                 const r = 6;
-                ctx.fillRect(pt.x - r, pt.y - r, r * 2, r * 2);
-                ctx.strokeRect(pt.x - r, pt.y - r, r * 2, r * 2);
+                graphics.rect(pt.x - r, pt.y - r, r * 2, r * 2);
+                graphics.fill({ color: route.color });
+                graphics.stroke({ width: 1, color: 0x000000 });
             }
         }
     }

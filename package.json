@@ -24,6 +24,7 @@
     "webpack-cli": "^7.2.3"
   },
   "dependencies": {
-    "@fluentui/react-icons": "^2.0.341"
+    "@fluentui/react-icons": "^2.0.341",
+    "pixi.js": "^8.21.0"
   }
 }
