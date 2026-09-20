@@ -9,26 +9,19 @@ export default (env, argv) => {
   const isProduction = argv.mode === 'production';
 
   return {
-    entry: './src/main_app.tsx',
+    entry: {
+      main_app: './src/main_app.tsx'
+    },
     mode: isProduction ? 'production' : 'development',
     devtool: isProduction ? false : 'eval-source-map',
-    target: 'es2022',
+    target: 'web',
     experiments: {
       outputModule: true,
     },
-    externalsType: 'module',
-    externals: {
-      'react': 'react',
-      'react-dom': 'react-dom',
-      'react-dom/client': 'react-dom/client',
-      'react/jsx-runtime': 'react/jsx-runtime',
-      '@fluentui/react-components': '@fluentui/react-components',
-      '@fluentui/react-icons': '@fluentui/react-icons',
-    },
     output: {
       path: path.resolve(__dirname, 'dist'),
-      filename: 'main_app.js',
-      module: true,
+      filename: '[name].js',
+      chunkFilename: '[name].js',
       clean: false,
     },
     resolve: {
