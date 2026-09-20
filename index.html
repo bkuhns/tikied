@@ -15,21 +15,6 @@
 
     <link rel="icon" type="image/x-icon" href="./favicon.ico" />
     <link rel="stylesheet" href="styles.css">
-    <!-- Pako for ZLIB compression/decompression -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
-    <!-- Import Map for React -->
-    <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@18.2.0",
-        "react-dom": "https://esm.sh/react-dom@18.2.0",
-        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-        "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
-        "@fluentui/react-components": "https://esm.sh/@fluentui/react-components@9?external=react,react-dom",
-        "@fluentui/react-icons": "https://esm.sh/@fluentui/react-icons@2?external=react,react-dom"
-      }
-    }
-    </script>
     <script type="module" src="dist/main_app.js"></script>
     <script>
       if ('serviceWorker' in navigator) {
@@ -42,6 +27,24 @@
     </script>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #F8F6EC; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #242220; margin: 0; padding: 20px; box-sizing: border-box;">
+            <div style="background: #EFEBDC; border: 1px solid #D2C8A8; border-radius: 12px; padding: 40px; text-align: center; max-width: 420px; width: 100%; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+                <img src="./logo-sm.png" alt="Tikied Logo" style="width: 80px; height: 80px; margin-bottom: 16px; object-fit: contain;" />
+                <h1 style="font-size: 1.6rem; margin: 0 0 8px 0; color: #242220; font-weight: 700; border: none; padding: 0;">Tikied</h1>
+                <p style="margin: 0 0 24px 0; color: #523C2A; font-size: 0.95rem;">PixelJunk™ Monsters Ultimate Editor</p>
+                <div style="display: inline-flex; align-items: center; gap: 10px; font-weight: 500; font-size: 0.9rem; color: #6BB338;">
+                    <div style="width: 16px; height: 16px; border: 2px solid #6BB338; border-top-color: transparent; border-radius: 50%; animation: tikied-spin 0.8s linear infinite;"></div>
+                    <span>Loading application...</span>
+                </div>
+            </div>
+        </div>
+        <style>
+            @keyframes tikied-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    </div>
 </body>
 </html>

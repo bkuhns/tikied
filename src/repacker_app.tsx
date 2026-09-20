@@ -5,7 +5,7 @@ import {
     Button, Input, Label 
 } from '@fluentui/react-components';
 
-declare const pako: any;
+import * as pako from 'pako';
 
 export interface RepackerModalProps {
     isOpen: boolean;

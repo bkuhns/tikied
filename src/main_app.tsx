@@ -1,10 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import { PJMArchive } from './pjm_archive.js';
 import { ArchiveSelector, StageSelection } from './shared_components.js';
 import { StageInfo, ISLANDS } from './stages_data.js';
 import { PJMArchiveGateway, GameDataGateway } from './editor_api.js';
-import { StageInspectorApp } from './stage_inspector_app.js';
 import { 
     Toaster, 
     useToastController, 
@@ -17,6 +16,8 @@ import {
 } from '@fluentui/react-components';
 import { SlideGridRegular } from '@fluentui/react-icons';
 import { tikiedTheme } from './theme.js';
+
+const StageInspectorApp = lazy(() => import('./stage_inspector_app.js').then(m => ({ default: m.StageInspectorApp })));
 
 type ViewState = 'splash' | 'inspector';
 
@@ -80,21 +81,27 @@ const MainApp: React.FC = () => {
 
     if (currentView === 'inspector' && gateway && archive && pkdFile && pkiFile) {
         return (
-            <StageInspectorApp 
-                gateway={gateway} 
-                archive={archive}
-                pkiFile={pkiFile}
-                pkdFile={pkdFile}
-                initialStage={selectedStage}
-                onBackToSplash={() => {
-                    setArchive(null);
-                    setPkiFile(null);
-                    setPkdFile(null);
-                    setSelectedStage(null);
-                    setIsStageSelectOpen(false);
-                    setCurrentView('splash');
-                }} 
-            />
+            <Suspense fallback={
+                <div style={{ display: 'flex', height: '100vh', justifyContent: 'center', alignItems: 'center', backgroundColor: 'var(--neutral-bg-canvas)', color: 'var(--neutral-fg-main)' }}>
+                    <div>Loading Stage Viewer...</div>
+                </div>
+            }>
+                <StageInspectorApp 
+                    gateway={gateway} 
+                    archive={archive}
+                    pkiFile={pkiFile}
+                    pkdFile={pkdFile}
+                    initialStage={selectedStage}
+                    onBackToSplash={() => {
+                        setArchive(null);
+                        setPkiFile(null);
+                        setPkdFile(null);
+                        setSelectedStage(null);
+                        setIsStageSelectOpen(false);
+                        setCurrentView('splash');
+                    }} 
+                />
+            </Suspense>
         );
     }
 

@@ -1,5 +1,4 @@
-// Make TypeScript aware of the global pako object from the CDN
-declare const pako: any;
+import * as pako from 'pako';
 
 export interface ArchiveEntry {
     uncompressedSize: number;

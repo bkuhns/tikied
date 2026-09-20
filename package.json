@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@fluentui/react-icons": "^2.0.341",
+    "pako": "^3.0.2",
     "pixi.js": "^8.21.0"
   }
 }

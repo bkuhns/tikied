@@ -41,3 +41,18 @@ export const ENEMY_SPRITE_PATHS: Record<string, string> = {
     "enemy_boss_4": "data-common/textures/enemy/boss4.dds",
     "balloon": "data-common/textures/enemy/balloon.dds"
 };
+
+export const ENEMY_GRID_DIVISIONS: Record<string, { cols: number; rows: number }> = {
+    "enemy_basic_walk": { cols: 4, rows: 2 },
+    "enemy_basic_fly": { cols: 4, rows: 4 },
+    "enemy_strong_fly": { cols: 4, rows: 4 },
+    "enemy_running_walk": { cols: 2, rows: 4 },
+    "enemy_running_fly": { cols: 4, rows: 4 },
+    "enemy_strong_walk": { cols: 4, rows: 2 },
+    "enemy_strong_running": { cols: 4, rows: 2 },
+    "enemy_boss_1": { cols: 4, rows: 2 },
+    "enemy_boss_2": { cols: 4, rows: 2 },
+    "enemy_boss_3": { cols: 4, rows: 2 },
+    "enemy_boss_4": { cols: 4, rows: 4 },
+    "balloon": { cols: 2, rows: 2 }
+};
