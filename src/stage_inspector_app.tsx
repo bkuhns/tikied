@@ -8,6 +8,7 @@ import { WaveTable } from './wave_table.js';
 import { tikiedTheme } from './theme.js';
 import { PJMArchive } from './pjm_archive.js';
 import { RepackerModal } from './repacker_app.js';
+import { TextureViewerModal } from './texture_viewer_app.js';
 import { 
     FluentProvider, 
     Button, 
@@ -21,9 +22,11 @@ import {
     useToastController,
     Toast,
     ToastTitle,
-    ToastBody
+    ToastBody,
+    Toolbar,
+    ToolbarButton
 } from '@fluentui/react-components';
-import { MultiselectLtrRegular, GaugeRegular } from '@fluentui/react-icons';
+import { MultiselectLtrRegular, GaugeRegular, WrenchRegular } from '@fluentui/react-icons';
 
 interface StageInspectorAppProps {
     gateway: GameDataGateway;
@@ -69,6 +72,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
 
     const [difficultyIndex, setDifficultyIndex] = useState<number>(1);
     const [isRepackerOpen, setIsRepackerOpen] = useState(false);
+    const [isTextureViewerOpen, setIsTextureViewerOpen] = useState(false);
     
     const toasterId = useId();
     const { dispatchToast } = useToastController(toasterId);
@@ -122,25 +126,33 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
         <FluentProvider theme={tikiedTheme} style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Toaster toasterId={toasterId} position="bottom-start" />
             
-            {/* Top Toolbar */}
-            {/* hide the whole top toolbar for now, it's kinda pointless for now
+            {/* Top Header Toolbar */}
             <header style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '15px', 
-                padding: '10px 20px', 
+                padding: '6px 16px', 
                 backgroundColor: tikiedTheme.colorNeutralBackground2, 
                 borderBottom: `1px solid ${tikiedTheme.colorNeutralStroke1}`,
                 flexShrink: 0
             }}>
-                <Button appearance="primary" onClick={onBackToSplash}>← Load archives</Button>
+                <Button size="small" appearance="outline" onClick={onBackToSplash}>← Load archives</Button>
                 
-                <div style={{ flex: 1 }} />
-                
-                {/* Hide the repack button for now 
-                <Button appearance="primary" onClick={() => setIsRepackerOpen(true)}>Repack Assets</Button>
-                */}
-            {/*</header>*/}
+                <Toolbar size="small">
+                    <Menu closeOnScroll>
+                        <MenuTrigger disableButtonEnhancement>
+                            <Button size="small" icon={<WrenchRegular />}>Tools ▾</Button>
+                        </MenuTrigger>
+                        <MenuPopover>
+                            <MenuList>
+                                <MenuItem onClick={() => setIsTextureViewerOpen(true)}>
+                                    Texture Viewer
+                                </MenuItem>
+                            </MenuList>
+                        </MenuPopover>
+                    </Menu>
+                </Toolbar>
+            </header>
 
             {/* Main Application Body */}
             <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
@@ -280,6 +292,12 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                 archive={archive} 
                 pkdFile={pkdFile} 
                 onToast={handleStatusChange} 
+            />
+
+            <TextureViewerModal 
+                isOpen={isTextureViewerOpen} 
+                onClose={() => setIsTextureViewerOpen(false)} 
+                gateway={gateway} 
             />
         </FluentProvider>
     );

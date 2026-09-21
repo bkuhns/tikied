@@ -26,6 +26,8 @@ export interface StageDecorations {
     typesToLoad: Set<string>;
 }
 
+export const DEFAULT_ANIMATION_FPS = 8;
+
 export interface GameDataGateway {
     // --- Read API ---
     getStageSettings(stageId: number): Promise<StageSettings | null>;
@@ -39,6 +41,7 @@ export interface GameDataGateway {
     getWaveTexture(): Promise<ImageData | null>;
     getStageThumbnails(): Promise<ImageData | null>;
     getEnemySpriteTexture(spriteType: string): Promise<ImageData | null>;
+    getTextureAsImageData(path: string): Promise<ImageData | null>;
 
     // --- Write API ---
     // NOTE: These are stubbed for now and act as no-ops. 
@@ -278,6 +281,12 @@ export class PJMArchiveGateway implements GameDataGateway {
     async getEnemySpriteTexture(spriteType: string): Promise<ImageData | null> {
         const path = ENEMY_SPRITE_PATHS[spriteType];
         if (!path) return null;
+        const bytes = await this.archive.extractFile(this.pkdFile, path);
+        if (!bytes) return null;
+        return DDSDecoder.decodeToImageData(bytes, true);
+    }
+
+    async getTextureAsImageData(path: string): Promise<ImageData | null> {
         const bytes = await this.archive.extractFile(this.pkdFile, path);
         if (!bytes) return null;
         return DDSDecoder.decodeToImageData(bytes, true);

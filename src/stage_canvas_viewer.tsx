@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { WaveInfo } from './stage_parser.js';
-import { GameDataGateway, SpriteInstance } from './editor_api.js';
+import { GameDataGateway, SpriteInstance, DEFAULT_ANIMATION_FPS } from './editor_api.js';
 import { WebGLWaterRenderer } from './webgl_water.js';
 import { RoutesRenderer, Route } from './routes_renderer.js';
 import { Application, Container, Sprite, Texture, Rectangle, Graphics } from 'pixi.js';
@@ -235,7 +235,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
 
         routes.forEach((r, idx) => {
             const userVisible = routeToggles[idx] ? routeToggles[idx].visible : true;
-            const color = routeToggles[idx] ? routeToggles[idx].color : (r.color ? `#${r.color.toString(16).padStart(6, '0')}` : '#ffffff');
+            const color = routeToggles[idx] ? routeToggles[idx].color : (r.color || '#ffffff');
             const isVisible = activeRouteIndices !== null ? (userVisible && activeRouteIndices.has(idx)) : userVisible;
 
             r.visible = isVisible;
@@ -517,7 +517,7 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                                     }
 
                                     // Frame Tileset Cycling
-                                    const fps = m.kindInfo.fps ?? 8;
+                                    const fps = m.kindInfo.fps ?? DEFAULT_ANIMATION_FPS;
                                     const numFrames = m.frameTextures.length;
                                     if (numFrames > 1 && fps > 0) {
                                         const frameIdx = Math.floor(m.elapsedTime * fps * m.speedMultiplier) % numFrames;

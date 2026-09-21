@@ -1,0 +1,1829 @@
+[
+  {
+    "name": "data-common",
+    "path": "data-common",
+    "type": "folder",
+    "children": [
+      {
+        "name": "textures",
+        "path": "data-common/textures",
+        "type": "folder",
+        "children": [
+          {
+            "name": "4bit",
+            "path": "data-common/textures/4bit",
+            "type": "folder",
+            "children": [
+              {
+                "name": "fonts",
+                "path": "data-common/textures/4bit/fonts",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "eula_14.dds",
+                    "path": "data-common/textures/4bit/fonts/eula_14.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "reggae_24_sdf.dds",
+                    "path": "data-common/textures/4bit/fonts/reggae_24_sdf.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "reggae_24.dds",
+                    "path": "data-common/textures/4bit/fonts/reggae_24.dds",
+                    "type": "file"
+                  }
+                ]
+              },
+              {
+                "name": "antenna.dds",
+                "path": "data-common/textures/4bit/antenna.dds",
+                "type": "file"
+              }
+            ]
+          },
+          {
+            "name": "bgdata",
+            "path": "data-common/textures/bgdata",
+            "type": "folder",
+            "children": [
+              {
+                "name": "bg",
+                "path": "data-common/textures/bgdata/bg",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "stage1.dds",
+                    "path": "data-common/textures/bgdata/bg/stage1.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage10.dds",
+                    "path": "data-common/textures/bgdata/bg/stage10.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage11.dds",
+                    "path": "data-common/textures/bgdata/bg/stage11.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage12.dds",
+                    "path": "data-common/textures/bgdata/bg/stage12.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage13.dds",
+                    "path": "data-common/textures/bgdata/bg/stage13.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage14.dds",
+                    "path": "data-common/textures/bgdata/bg/stage14.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage15.dds",
+                    "path": "data-common/textures/bgdata/bg/stage15.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage16.dds",
+                    "path": "data-common/textures/bgdata/bg/stage16.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage17.dds",
+                    "path": "data-common/textures/bgdata/bg/stage17.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage18.dds",
+                    "path": "data-common/textures/bgdata/bg/stage18.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage19.dds",
+                    "path": "data-common/textures/bgdata/bg/stage19.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage2.dds",
+                    "path": "data-common/textures/bgdata/bg/stage2.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage20.dds",
+                    "path": "data-common/textures/bgdata/bg/stage20.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage21.dds",
+                    "path": "data-common/textures/bgdata/bg/stage21.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage3.dds",
+                    "path": "data-common/textures/bgdata/bg/stage3.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage4.dds",
+                    "path": "data-common/textures/bgdata/bg/stage4.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage43.dds",
+                    "path": "data-common/textures/bgdata/bg/stage43.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage44.dds",
+                    "path": "data-common/textures/bgdata/bg/stage44.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage45.dds",
+                    "path": "data-common/textures/bgdata/bg/stage45.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage46.dds",
+                    "path": "data-common/textures/bgdata/bg/stage46.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage47.dds",
+                    "path": "data-common/textures/bgdata/bg/stage47.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage48.dds",
+                    "path": "data-common/textures/bgdata/bg/stage48.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage49.dds",
+                    "path": "data-common/textures/bgdata/bg/stage49.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage5.dds",
+                    "path": "data-common/textures/bgdata/bg/stage5.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage50.dds",
+                    "path": "data-common/textures/bgdata/bg/stage50.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage51.dds",
+                    "path": "data-common/textures/bgdata/bg/stage51.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage52.dds",
+                    "path": "data-common/textures/bgdata/bg/stage52.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage53.dds",
+                    "path": "data-common/textures/bgdata/bg/stage53.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage54.dds",
+                    "path": "data-common/textures/bgdata/bg/stage54.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage55.dds",
+                    "path": "data-common/textures/bgdata/bg/stage55.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage56.dds",
+                    "path": "data-common/textures/bgdata/bg/stage56.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage57.dds",
+                    "path": "data-common/textures/bgdata/bg/stage57.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage6.dds",
+                    "path": "data-common/textures/bgdata/bg/stage6.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage7.dds",
+                    "path": "data-common/textures/bgdata/bg/stage7.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage73.dds",
+                    "path": "data-common/textures/bgdata/bg/stage73.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage74.dds",
+                    "path": "data-common/textures/bgdata/bg/stage74.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage75.dds",
+                    "path": "data-common/textures/bgdata/bg/stage75.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage76.dds",
+                    "path": "data-common/textures/bgdata/bg/stage76.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage77.dds",
+                    "path": "data-common/textures/bgdata/bg/stage77.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage78.dds",
+                    "path": "data-common/textures/bgdata/bg/stage78.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage79.dds",
+                    "path": "data-common/textures/bgdata/bg/stage79.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage8.dds",
+                    "path": "data-common/textures/bgdata/bg/stage8.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage80.dds",
+                    "path": "data-common/textures/bgdata/bg/stage80.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage81.dds",
+                    "path": "data-common/textures/bgdata/bg/stage81.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage82.dds",
+                    "path": "data-common/textures/bgdata/bg/stage82.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage83.dds",
+                    "path": "data-common/textures/bgdata/bg/stage83.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage9.dds",
+                    "path": "data-common/textures/bgdata/bg/stage9.dds",
+                    "type": "file"
+                  }
+                ]
+              },
+              {
+                "name": "objects",
+                "path": "data-common/textures/bgdata/objects",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "bridge_s12.dds",
+                    "path": "data-common/textures/bgdata/objects/bridge_s12.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "bridge_s16.dds",
+                    "path": "data-common/textures/bgdata/objects/bridge_s16.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "butterfly.dds",
+                    "path": "data-common/textures/bgdata/objects/butterfly.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "house_ground_winter.dds",
+                    "path": "data-common/textures/bgdata/objects/house_ground_winter.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "house_ground.dds",
+                    "path": "data-common/textures/bgdata/objects/house_ground.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "house1_ground.dds",
+                    "path": "data-common/textures/bgdata/objects/house1_ground.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "house1.dds",
+                    "path": "data-common/textures/bgdata/objects/house1.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "log.dds",
+                    "path": "data-common/textures/bgdata/objects/log.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "rockset1.dds",
+                    "path": "data-common/textures/bgdata/objects/rockset1.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "shadow.dds",
+                    "path": "data-common/textures/bgdata/objects/shadow.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "snowrocks.dds",
+                    "path": "data-common/textures/bgdata/objects/snowrocks.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage52bridgea.dds",
+                    "path": "data-common/textures/bgdata/objects/stage52bridgea.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage52bridgeb.dds",
+                    "path": "data-common/textures/bgdata/objects/stage52bridgeb.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage79bridge.dds",
+                    "path": "data-common/textures/bgdata/objects/stage79bridge.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stumps_2x2.dds",
+                    "path": "data-common/textures/bgdata/objects/stumps_2x2.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "swampbridge.dds",
+                    "path": "data-common/textures/bgdata/objects/swampbridge.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "treeset_autumn1.dds",
+                    "path": "data-common/textures/bgdata/objects/treeset_autumn1.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "treeset_bare1.dds",
+                    "path": "data-common/textures/bgdata/objects/treeset_bare1.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "treeset_beach.dds",
+                    "path": "data-common/textures/bgdata/objects/treeset_beach.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "treeset_spring.dds",
+                    "path": "data-common/textures/bgdata/objects/treeset_spring.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "treeset_summer1.dds",
+                    "path": "data-common/textures/bgdata/objects/treeset_summer1.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "treeset_swamp1.dds",
+                    "path": "data-common/textures/bgdata/objects/treeset_swamp1.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "treeset_winter1.dds",
+                    "path": "data-common/textures/bgdata/objects/treeset_winter1.dds",
+                    "type": "file"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "effects",
+            "path": "data-common/textures/effects",
+            "type": "folder",
+            "children": [
+              {
+                "name": "enemy",
+                "path": "data-common/textures/effects/enemy",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "enemy1.dds",
+                    "path": "data-common/textures/effects/enemy/enemy1.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "enemy2.dds",
+                    "path": "data-common/textures/effects/enemy/enemy2.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "enemy3.dds",
+                    "path": "data-common/textures/effects/enemy/enemy3.dds",
+                    "type": "file"
+                  }
+                ]
+              },
+              {
+                "name": "explosion",
+                "path": "data-common/textures/effects/explosion",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "explosion.dds",
+                    "path": "data-common/textures/effects/explosion/explosion.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "mushroom.dds",
+                    "path": "data-common/textures/effects/explosion/mushroom.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "shockwave.dds",
+                    "path": "data-common/textures/effects/explosion/shockwave.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "smoke.dds",
+                    "path": "data-common/textures/effects/explosion/smoke.dds",
+                    "type": "file"
+                  }
+                ]
+              },
+              {
+                "name": "towers",
+                "path": "data-common/textures/effects/towers",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "aagun",
+                    "path": "data-common/textures/effects/towers/aagun",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "muzzleflash.dds",
+                        "path": "data-common/textures/effects/towers/aagun/muzzleflash.dds",
+                        "type": "file"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "cannon",
+                    "path": "data-common/textures/effects/towers/cannon",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "cannonball.dds",
+                        "path": "data-common/textures/effects/towers/cannon/cannonball.dds",
+                        "type": "file"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "fire",
+                    "path": "data-common/textures/effects/towers/fire",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "fire.dds",
+                        "path": "data-common/textures/effects/towers/fire/fire.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "fire2.dds",
+                        "path": "data-common/textures/effects/towers/fire/fire2.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "flame.dds",
+                        "path": "data-common/textures/effects/towers/fire/flame.dds",
+                        "type": "file"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "ice",
+                    "path": "data-common/textures/effects/towers/ice",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "spraymask.dds",
+                        "path": "data-common/textures/effects/towers/ice/spraymask.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "spraymask2.dds",
+                        "path": "data-common/textures/effects/towers/ice/spraymask2.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "spraystart.dds",
+                        "path": "data-common/textures/effects/towers/ice/spraystart.dds",
+                        "type": "file"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "laser",
+                    "path": "data-common/textures/effects/towers/laser",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "beam.dds",
+                        "path": "data-common/textures/effects/towers/laser/beam.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "glow.dds",
+                        "path": "data-common/textures/effects/towers/laser/glow.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "laserhit.dds",
+                        "path": "data-common/textures/effects/towers/laser/laserhit.dds",
+                        "type": "file"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "lightning",
+                    "path": "data-common/textures/effects/towers/lightning",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "lightning.dds",
+                        "path": "data-common/textures/effects/towers/lightning/lightning.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "lightningglow.dds",
+                        "path": "data-common/textures/effects/towers/lightning/lightningglow.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "lightningstrike.dds",
+                        "path": "data-common/textures/effects/towers/lightning/lightningstrike.dds",
+                        "type": "file"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "tesla",
+                    "path": "data-common/textures/effects/towers/tesla",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "electric.dds",
+                        "path": "data-common/textures/effects/towers/tesla/electric.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "groundstrike.dds",
+                        "path": "data-common/textures/effects/towers/tesla/groundstrike.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "teslaglow.dds",
+                        "path": "data-common/textures/effects/towers/tesla/teslaglow.dds",
+                        "type": "file"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "trap_tower",
+                    "path": "data-common/textures/effects/towers/trap_tower",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "glow.dds",
+                        "path": "data-common/textures/effects/towers/trap_tower/glow.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "traplasers.dds",
+                        "path": "data-common/textures/effects/towers/trap_tower/traplasers.dds",
+                        "type": "file"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "xp_tower",
+                    "path": "data-common/textures/effects/towers/xp_tower",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "xpeffect.dds",
+                        "path": "data-common/textures/effects/towers/xp_tower/xpeffect.dds",
+                        "type": "file"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "arrow.dds",
+                "path": "data-common/textures/effects/arrow.dds",
+                "type": "file"
+              },
+              {
+                "name": "clouds.dds",
+                "path": "data-common/textures/effects/clouds.dds",
+                "type": "file"
+              },
+              {
+                "name": "fallingrock.dds",
+                "path": "data-common/textures/effects/fallingrock.dds",
+                "type": "file"
+              },
+              {
+                "name": "newwave.dds",
+                "path": "data-common/textures/effects/newwave.dds",
+                "type": "file"
+              },
+              {
+                "name": "rain.dds",
+                "path": "data-common/textures/effects/rain.dds",
+                "type": "file"
+              },
+              {
+                "name": "snow.dds",
+                "path": "data-common/textures/effects/snow.dds",
+                "type": "file"
+              },
+              {
+                "name": "splash.dds",
+                "path": "data-common/textures/effects/splash.dds",
+                "type": "file"
+              }
+            ]
+          },
+          {
+            "name": "enemy",
+            "path": "data-common/textures/enemy",
+            "type": "folder",
+            "children": [
+              {
+                "name": "balloon.dds",
+                "path": "data-common/textures/enemy/balloon.dds",
+                "type": "file"
+              },
+              {
+                "name": "basic_fast.dds",
+                "path": "data-common/textures/enemy/basic_fast.dds",
+                "type": "file"
+              },
+              {
+                "name": "basic_hard.dds",
+                "path": "data-common/textures/enemy/basic_hard.dds",
+                "type": "file"
+              },
+              {
+                "name": "basic.dds",
+                "path": "data-common/textures/enemy/basic.dds",
+                "type": "file"
+              },
+              {
+                "name": "boss1.dds",
+                "path": "data-common/textures/enemy/boss1.dds",
+                "type": "file"
+              },
+              {
+                "name": "boss2.dds",
+                "path": "data-common/textures/enemy/boss2.dds",
+                "type": "file"
+              },
+              {
+                "name": "boss3.dds",
+                "path": "data-common/textures/enemy/boss3.dds",
+                "type": "file"
+              },
+              {
+                "name": "boss4.dds",
+                "path": "data-common/textures/enemy/boss4.dds",
+                "type": "file"
+              },
+              {
+                "name": "enemies.dds",
+                "path": "data-common/textures/enemy/enemies.dds",
+                "type": "file"
+              },
+              {
+                "name": "flying_basic.dds",
+                "path": "data-common/textures/enemy/flying_basic.dds",
+                "type": "file"
+              },
+              {
+                "name": "flying_fast.dds",
+                "path": "data-common/textures/enemy/flying_fast.dds",
+                "type": "file"
+              },
+              {
+                "name": "flying_hard.dds",
+                "path": "data-common/textures/enemy/flying_hard.dds",
+                "type": "file"
+              },
+              {
+                "name": "hard_fast.dds",
+                "path": "data-common/textures/enemy/hard_fast.dds",
+                "type": "file"
+              }
+            ]
+          },
+          {
+            "name": "frontend",
+            "path": "data-common/textures/frontend",
+            "type": "folder",
+            "children": [
+              {
+                "name": "howtoplay",
+                "path": "data-common/textures/frontend/howtoplay",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "howtoplay_adhoc.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_adhoc.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_build_tower_01.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_build_tower_01.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_build_tower_02.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_build_tower_02.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_controller_arrow.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_controller_arrow.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_controller_game_keyboard_a.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_controller_game_keyboard_a.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_controller_game_keyboard_chat_tab.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_controller_game_keyboard_chat_tab.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_controller_game_keyboard_f.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_controller_game_keyboard_f.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_controller_game_keyboard_members.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_controller_game_keyboard_members.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_controller_game_keyboard.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_controller_game_keyboard.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_controller_game_xbox360_chat_tab.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_controller_game_xbox360_chat_tab.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_controller_game_xbox360_members.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_controller_game_xbox360_members.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_controller_game_xbox360.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_controller_game_xbox360.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_controller_game.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_controller_game.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_controller_infra.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_controller_infra.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_game_objectives.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_game_objectives.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_game_rule.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_game_rule.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_items_01.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_items_01.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_items_02.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_items_02.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_items_03.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_items_03.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_modes_screen.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_modes_screen.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_player_list.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_player_list.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_research.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_research.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_ring_menu.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_ring_menu.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_room.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_room.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_scoring_01_small.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_scoring_01_small.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_scoring_01.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_scoring_01.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_scoring_02.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_scoring_02.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_tikigo.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_tikigo.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_video.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_video.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "howtoplay_wavebar.dds",
+                    "path": "data-common/textures/frontend/howtoplay/howtoplay_wavebar.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "manualbg.dds",
+                    "path": "data-common/textures/frontend/howtoplay/manualbg.dds",
+                    "type": "file"
+                  }
+                ]
+              },
+              {
+                "name": "map",
+                "path": "data-common/textures/frontend/map",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "icon_info.dds",
+                    "path": "data-common/textures/frontend/map/icon_info.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "is_icons01.dds",
+                    "path": "data-common/textures/frontend/map/is_icons01.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "is_volcano.dds",
+                    "path": "data-common/textures/frontend/map/is_volcano.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "islandselect_night.dds",
+                    "path": "data-common/textures/frontend/map/islandselect_night.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "islandselect.dds",
+                    "path": "data-common/textures/frontend/map/islandselect.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "mapfallingrocks.dds",
+                    "path": "data-common/textures/frontend/map/mapfallingrocks.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "stage_thumbnails.dds",
+                    "path": "data-common/textures/frontend/map/stage_thumbnails.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "thumb_border.dds",
+                    "path": "data-common/textures/frontend/map/thumb_border.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "wm_clouds.dds",
+                    "path": "data-common/textures/frontend/map/wm_clouds.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "wm_lavarocks.dds",
+                    "path": "data-common/textures/frontend/map/wm_lavarocks.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "wm_mountain_01.dds",
+                    "path": "data-common/textures/frontend/map/wm_mountain_01.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "wm_nightsky.dds",
+                    "path": "data-common/textures/frontend/map/wm_nightsky.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "wm_volcano.dds",
+                    "path": "data-common/textures/frontend/map/wm_volcano.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "wm_volcanocrater.dds",
+                    "path": "data-common/textures/frontend/map/wm_volcanocrater.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "wm1_sky.dds",
+                    "path": "data-common/textures/frontend/map/wm1_sky.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "wm2_eyeanim.dds",
+                    "path": "data-common/textures/frontend/map/wm2_eyeanim.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "wm2_sky.dds",
+                    "path": "data-common/textures/frontend/map/wm2_sky.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "wm3_sky.dds",
+                    "path": "data-common/textures/frontend/map/wm3_sky.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "wminfowindow.dds",
+                    "path": "data-common/textures/frontend/map/wminfowindow.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "worldmap.dds",
+                    "path": "data-common/textures/frontend/map/worldmap.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "worldmap2.dds",
+                    "path": "data-common/textures/frontend/map/worldmap2.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "worldmap3.dds",
+                    "path": "data-common/textures/frontend/map/worldmap3.dds",
+                    "type": "file"
+                  }
+                ]
+              },
+              {
+                "name": "medalroom",
+                "path": "data-common/textures/frontend/medalroom",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "gallery1",
+                    "path": "data-common/textures/frontend/medalroom/gallery1",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "g1_01.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_01.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_02.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_02.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_03.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_03.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_04.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_04.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_05.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_05.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_06.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_06.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_07.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_07.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_08.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_08.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_09.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_09.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_10.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_10.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_11.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_11.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_12.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_12.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_13.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_13.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_14.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_14.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_15.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_15.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_16.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_16.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_17.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_17.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_18.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_18.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_19.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_19.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_20.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery1/g1_20.dds",
+                        "type": "file"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "gallery2",
+                    "path": "data-common/textures/frontend/medalroom/gallery2",
+                    "type": "folder",
+                    "children": [
+                      {
+                        "name": "g1_01.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_01.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_02.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_02.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_03.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_03.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_04.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_04.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_05.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_05.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_06.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_06.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_07.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_07.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_08.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_08.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_09.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_09.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_10.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_10.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_11.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_11.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_12.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_12.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_13.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_13.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_14.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_14.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_15.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_15.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_16.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_16.dds",
+                        "type": "file"
+                      },
+                      {
+                        "name": "g1_17.dds",
+                        "path": "data-common/textures/frontend/medalroom/gallery2/g1_17.dds",
+                        "type": "file"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "mricons.dds",
+                    "path": "data-common/textures/frontend/medalroom/mricons.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "mritems_01.dds",
+                    "path": "data-common/textures/frontend/medalroom/mritems_01.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "mritems_02.dds",
+                    "path": "data-common/textures/frontend/medalroom/mritems_02.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "mritems_03.dds",
+                    "path": "data-common/textures/frontend/medalroom/mritems_03.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "mritems_04.dds",
+                    "path": "data-common/textures/frontend/medalroom/mritems_04.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "otograph.dds",
+                    "path": "data-common/textures/frontend/medalroom/otograph.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "soundtest.dds",
+                    "path": "data-common/textures/frontend/medalroom/soundtest.dds",
+                    "type": "file"
+                  }
+                ]
+              },
+              {
+                "name": "shared",
+                "path": "data-common/textures/frontend/shared",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "baricons.dds",
+                    "path": "data-common/textures/frontend/shared/baricons.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "barpath.dds",
+                    "path": "data-common/textures/frontend/shared/barpath.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "burninfilter.dds",
+                    "path": "data-common/textures/frontend/shared/burninfilter.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "dot.dds",
+                    "path": "data-common/textures/frontend/shared/dot.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "pixeljunkbar.dds",
+                    "path": "data-common/textures/frontend/shared/pixeljunkbar.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "tc_indicator.dds",
+                    "path": "data-common/textures/frontend/shared/tc_indicator.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "windowb.dds",
+                    "path": "data-common/textures/frontend/shared/windowb.dds",
+                    "type": "file"
+                  }
+                ]
+              },
+              {
+                "name": "title",
+                "path": "data-common/textures/frontend/title",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "monsterslogo.dds",
+                    "path": "data-common/textures/frontend/title/monsterslogo.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "monsterslogo2.dds",
+                    "path": "data-common/textures/frontend/title/monsterslogo2.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "splashscreen.dds",
+                    "path": "data-common/textures/frontend/title/splashscreen.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "tc_titlebar.dds",
+                    "path": "data-common/textures/frontend/title/tc_titlebar.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "tc_trophy.dds",
+                    "path": "data-common/textures/frontend/title/tc_trophy.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "tc_udarrows.dds",
+                    "path": "data-common/textures/frontend/title/tc_udarrows.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "title_deluxe_1.dds",
+                    "path": "data-common/textures/frontend/title/title_deluxe_1.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "title_deluxe_2.dds",
+                    "path": "data-common/textures/frontend/title/title_deluxe_2.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "title_deluxe_3.dds",
+                    "path": "data-common/textures/frontend/title/title_deluxe_3.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "title_deluxe_4.dds",
+                    "path": "data-common/textures/frontend/title/title_deluxe_4.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "title_monsters_1.dds",
+                    "path": "data-common/textures/frontend/title/title_monsters_1.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "title_monsters_2.dds",
+                    "path": "data-common/textures/frontend/title/title_monsters_2.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "title_monsters_3.dds",
+                    "path": "data-common/textures/frontend/title/title_monsters_3.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "title_monsters_4.dds",
+                    "path": "data-common/textures/frontend/title/title_monsters_4.dds",
+                    "type": "file"
+                  }
+                ]
+              },
+              {
+                "name": "buttons_ps3.dds",
+                "path": "data-common/textures/frontend/buttons_ps3.dds",
+                "type": "file"
+              },
+              {
+                "name": "buttons.dds",
+                "path": "data-common/textures/frontend/buttons.dds",
+                "type": "file"
+              },
+              {
+                "name": "coopmenu_data1.dds",
+                "path": "data-common/textures/frontend/coopmenu_data1.dds",
+                "type": "file"
+              },
+              {
+                "name": "coopmenu_p1pic.dds",
+                "path": "data-common/textures/frontend/coopmenu_p1pic.dds",
+                "type": "file"
+              },
+              {
+                "name": "coopmenu_p2pic.dds",
+                "path": "data-common/textures/frontend/coopmenu_p2pic.dds",
+                "type": "file"
+              },
+              {
+                "name": "d11-logo.dds",
+                "path": "data-common/textures/frontend/d11-logo.dds",
+                "type": "file"
+              },
+              {
+                "name": "encoding.dds",
+                "path": "data-common/textures/frontend/encoding.dds",
+                "type": "file"
+              },
+              {
+                "name": "face_icon.dds",
+                "path": "data-common/textures/frontend/face_icon.dds",
+                "type": "file"
+              },
+              {
+                "name": "flags.dds",
+                "path": "data-common/textures/frontend/flags.dds",
+                "type": "file"
+              },
+              {
+                "name": "graphbar_h256.dds",
+                "path": "data-common/textures/frontend/graphbar_h256.dds",
+                "type": "file"
+              },
+              {
+                "name": "graphbar_v80.dds",
+                "path": "data-common/textures/frontend/graphbar_v80.dds",
+                "type": "file"
+              },
+              {
+                "name": "graphicons.dds",
+                "path": "data-common/textures/frontend/graphicons.dds",
+                "type": "file"
+              },
+              {
+                "name": "icon_owner.dds",
+                "path": "data-common/textures/frontend/icon_owner.dds",
+                "type": "file"
+              },
+              {
+                "name": "medalroom.dds",
+                "path": "data-common/textures/frontend/medalroom.dds",
+                "type": "file"
+              },
+              {
+                "name": "player_controls.dds",
+                "path": "data-common/textures/frontend/player_controls.dds",
+                "type": "file"
+              },
+              {
+                "name": "q-logo.dds",
+                "path": "data-common/textures/frontend/q-logo.dds",
+                "type": "file"
+              },
+              {
+                "name": "rainbow.dds",
+                "path": "data-common/textures/frontend/rainbow.dds",
+                "type": "file"
+              },
+              {
+                "name": "recording.dds",
+                "path": "data-common/textures/frontend/recording.dds",
+                "type": "file"
+              },
+              {
+                "name": "sendmenu_icon_2.dds",
+                "path": "data-common/textures/frontend/sendmenu_icon_2.dds",
+                "type": "file"
+              },
+              {
+                "name": "sendmenu_icon.dds",
+                "path": "data-common/textures/frontend/sendmenu_icon.dds",
+                "type": "file"
+              },
+              {
+                "name": "tikimanrun.dds",
+                "path": "data-common/textures/frontend/tikimanrun.dds",
+                "type": "file"
+              },
+              {
+                "name": "wm_gateopenmarker.dds",
+                "path": "data-common/textures/frontend/wm_gateopenmarker.dds",
+                "type": "file"
+              },
+              {
+                "name": "wm_icons.dds",
+                "path": "data-common/textures/frontend/wm_icons.dds",
+                "type": "file"
+              },
+              {
+                "name": "wm2_icons1.dds",
+                "path": "data-common/textures/frontend/wm2_icons1.dds",
+                "type": "file"
+              },
+              {
+                "name": "wm2_icons2.dds",
+                "path": "data-common/textures/frontend/wm2_icons2.dds",
+                "type": "file"
+              },
+              {
+                "name": "wm3_icons1.dds",
+                "path": "data-common/textures/frontend/wm3_icons1.dds",
+                "type": "file"
+              },
+              {
+                "name": "youtube_logo.dds",
+                "path": "data-common/textures/frontend/youtube_logo.dds",
+                "type": "file"
+              }
+            ]
+          },
+          {
+            "name": "ingameui",
+            "path": "data-common/textures/ingameui",
+            "type": "folder",
+            "children": [
+              {
+                "name": "main",
+                "path": "data-common/textures/ingameui/main",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "bar_diffuse.dds",
+                    "path": "data-common/textures/ingameui/main/bar_diffuse.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "bossmask.dds",
+                    "path": "data-common/textures/ingameui/main/bossmask.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "flagt.dds",
+                    "path": "data-common/textures/ingameui/main/flagt.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "gemsign.dds",
+                    "path": "data-common/textures/ingameui/main/gemsign.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "gemsignfont.dds",
+                    "path": "data-common/textures/ingameui/main/gemsignfont.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "greenbar.dds",
+                    "path": "data-common/textures/ingameui/main/greenbar.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "itemicons.dds",
+                    "path": "data-common/textures/ingameui/main/itemicons.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "itemicons2.dds",
+                    "path": "data-common/textures/ingameui/main/itemicons2.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "volume.dds",
+                    "path": "data-common/textures/ingameui/main/volume.dds",
+                    "type": "file"
+                  }
+                ]
+              },
+              {
+                "name": "resource",
+                "path": "data-common/textures/ingameui/resource",
+                "type": "folder",
+                "children": [
+                  {
+                    "name": "researchmenu_panelsa.dds",
+                    "path": "data-common/textures/ingameui/resource/researchmenu_panelsa.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "researchmenu_playerinfo.dds",
+                    "path": "data-common/textures/ingameui/resource/researchmenu_playerinfo.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "researchmenuicons.dds",
+                    "path": "data-common/textures/ingameui/resource/researchmenuicons.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "researchsign.dds",
+                    "path": "data-common/textures/ingameui/resource/researchsign.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "ringmenuicons.dds",
+                    "path": "data-common/textures/ingameui/resource/ringmenuicons.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "ringmenuicons2.dds",
+                    "path": "data-common/textures/ingameui/resource/ringmenuicons2.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "rm_textbg.dds",
+                    "path": "data-common/textures/ingameui/resource/rm_textbg.dds",
+                    "type": "file"
+                  },
+                  {
+                    "name": "upgradeicons.dds",
+                    "path": "data-common/textures/ingameui/resource/upgradeicons.dds",
+                    "type": "file"
+                  }
+                ]
+              },
+              {
+                "name": "controller_disconnect_p1.dds",
+                "path": "data-common/textures/ingameui/controller_disconnect_p1.dds",
+                "type": "file"
+              },
+              {
+                "name": "controller_disconnect_p2.dds",
+                "path": "data-common/textures/ingameui/controller_disconnect_p2.dds",
+                "type": "file"
+              },
+              {
+                "name": "icon4.dds",
+                "path": "data-common/textures/ingameui/icon4.dds",
+                "type": "file"
+              },
+              {
+                "name": "mouse_cursor.dds",
+                "path": "data-common/textures/ingameui/mouse_cursor.dds",
+                "type": "file"
+              },
+              {
+                "name": "pointer.dds",
+                "path": "data-common/textures/ingameui/pointer.dds",
+                "type": "file"
+              },
+              {
+                "name": "think.dds",
+                "path": "data-common/textures/ingameui/think.dds",
+                "type": "file"
+              },
+              {
+                "name": "tiki_pointer.dds",
+                "path": "data-common/textures/ingameui/tiki_pointer.dds",
+                "type": "file"
+              },
+              {
+                "name": "whitedot.dds",
+                "path": "data-common/textures/ingameui/whitedot.dds",
+                "type": "file"
+              }
+            ]
+          },
+          {
+            "name": "items",
+            "path": "data-common/textures/items",
+            "type": "folder",
+            "children": [
+              {
+                "name": "coin_spin.dds",
+                "path": "data-common/textures/items/coin_spin.dds",
+                "type": "file"
+              },
+              {
+                "name": "gem_spin.dds",
+                "path": "data-common/textures/items/gem_spin.dds",
+                "type": "file"
+              },
+              {
+                "name": "saving.dds",
+                "path": "data-common/textures/items/saving.dds",
+                "type": "file"
+              },
+              {
+                "name": "touchtarget_2.dds",
+                "path": "data-common/textures/items/touchtarget_2.dds",
+                "type": "file"
+              },
+              {
+                "name": "touchtarget.dds",
+                "path": "data-common/textures/items/touchtarget.dds",
+                "type": "file"
+              }
+            ]
+          },
+          {
+            "name": "player",
+            "path": "data-common/textures/player",
+            "type": "folder",
+            "children": [
+              {
+                "name": "baby_ghost.dds",
+                "path": "data-common/textures/player/baby_ghost.dds",
+                "type": "file"
+              },
+              {
+                "name": "baby_move.dds",
+                "path": "data-common/textures/player/baby_move.dds",
+                "type": "file"
+              },
+              {
+                "name": "bomb.dds",
+                "path": "data-common/textures/player/bomb.dds",
+                "type": "file"
+              },
+              {
+                "name": "player1_frames.dds",
+                "path": "data-common/textures/player/player1_frames.dds",
+                "type": "file"
+              },
+              {
+                "name": "player2_frames.dds",
+                "path": "data-common/textures/player/player2_frames.dds",
+                "type": "file"
+              }
+            ]
+          },
+          {
+            "name": "tower",
+            "path": "data-common/textures/tower",
+            "type": "folder",
+            "children": [
+              {
+                "name": "tower_aa_top.dds",
+                "path": "data-common/textures/tower/tower_aa_top.dds",
+                "type": "file"
+              },
+              {
+                "name": "tower_arrow_top.dds",
+                "path": "data-common/textures/tower/tower_arrow_top.dds",
+                "type": "file"
+              },
+              {
+                "name": "tower_bases_gold.dds",
+                "path": "data-common/textures/tower/tower_bases_gold.dds",
+                "type": "file"
+              },
+              {
+                "name": "tower_bases.dds",
+                "path": "data-common/textures/tower/tower_bases.dds",
+                "type": "file"
+              },
+              {
+                "name": "tower_cannon_top.dds",
+                "path": "data-common/textures/tower/tower_cannon_top.dds",
+                "type": "file"
+              },
+              {
+                "name": "tower_fire_top.dds",
+                "path": "data-common/textures/tower/tower_fire_top.dds",
+                "type": "file"
+              },
+              {
+                "name": "tower_hive_bug.dds",
+                "path": "data-common/textures/tower/tower_hive_bug.dds",
+                "type": "file"
+              },
+              {
+                "name": "tower_hole.dds",
+                "path": "data-common/textures/tower/tower_hole.dds",
+                "type": "file"
+              },
+              {
+                "name": "tower_ice_top.dds",
+                "path": "data-common/textures/tower/tower_ice_top.dds",
+                "type": "file"
+              },
+              {
+                "name": "tower_trap_emerge.dds",
+                "path": "data-common/textures/tower/tower_trap_emerge.dds",
+                "type": "file"
+              },
+              {
+                "name": "tower_trap_top.dds",
+                "path": "data-common/textures/tower/tower_trap_top.dds",
+                "type": "file"
+              },
+              {
+                "name": "xptower_broken.dds",
+                "path": "data-common/textures/tower/xptower_broken.dds",
+                "type": "file"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "textures",
+    "path": "textures",
+    "type": "folder",
+    "children": [
+      {
+        "name": "default.dds",
+        "path": "textures/default.dds",
+        "type": "file"
+      },
+      {
+        "name": "white.dds",
+        "path": "textures/white.dds",
+        "type": "file"
+      }
+    ]
+  }
+]
