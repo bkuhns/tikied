@@ -518,9 +518,18 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
 
                                     // Frame Tileset Cycling
                                     const fps = m.kindInfo.fps ?? DEFAULT_ANIMATION_FPS;
+                                    const loopStyle = m.kindInfo.loop_style ?? 'linear';
                                     const numFrames = m.frameTextures.length;
                                     if (numFrames > 1 && fps > 0) {
-                                        const frameIdx = Math.floor(m.elapsedTime * fps * m.speedMultiplier) % numFrames;
+                                        let frameIdx = 0;
+                                        if (loopStyle === 'pingpong') {
+                                            const cycleLen = 2 * (numFrames - 1);
+                                            const step = Math.floor(m.elapsedTime * fps * m.speedMultiplier) % cycleLen;
+                                            frameIdx = step < numFrames ? step : cycleLen - step;
+                                        } else {
+                                            frameIdx = Math.floor(m.elapsedTime * fps * m.speedMultiplier) % numFrames;
+                                        }
+
                                         if (m.sprite.texture !== m.frameTextures[frameIdx]) {
                                             m.sprite.texture = m.frameTextures[frameIdx];
                                         }
@@ -691,7 +700,9 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                         if (div && div.cols && div.rows) {
                             const fw = imgData.width / div.cols;
                             const fh = imgData.height / div.rows;
-                            for (let r = 0; r < div.rows; r++) {
+                            const startRow = div.target_row !== undefined ? div.target_row : 0;
+                            const endRow = div.target_row !== undefined ? div.target_row + 1 : div.rows;
+                            for (let r = startRow; r < endRow; r++) {
                                 for (let c = 0; c < div.cols; c++) {
                                     frames.push(new Texture({
                                         source: fullTexture.source,
