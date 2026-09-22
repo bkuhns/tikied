@@ -257,8 +257,9 @@ export const StageViewer: React.FC<StageViewerProps> = ({
                 }
 
                 // 3. Wave Preview Animation Step
-                waveDirectorRef.current.update(dt, activeMonstersRef.current.length);
-
+            if (waveDirectorRef.current && isPreviewingRef.current) {
+                waveDirectorRef.current.update(dt, () => activeMonstersRef.current.length);
+                
                 const active = activeMonstersRef.current;
                 
                 // Advance active monsters
@@ -277,6 +278,7 @@ export const StageViewer: React.FC<StageViewerProps> = ({
                         }
                     }
                 }
+            }
 
                 // If animations and preview are off, pause ticker to conserve CPU
                 if (!t.showAnimations && !isPreviewingRef.current && appRef.current) {
@@ -309,6 +311,9 @@ export const StageViewer: React.FC<StageViewerProps> = ({
             waveDirectorRef.current.stopPreview();
             isPreviewingRef.current = false;
             updateRouteVisibility();
+            if (onActiveWaveChangeRef.current) {
+                onActiveWaveChangeRef.current(null);
+            }
         };
 
         stopAndClearPreview();
@@ -390,7 +395,11 @@ export const StageViewer: React.FC<StageViewerProps> = ({
 
             wd.onActiveWaveChange = (idx: number | null) => {
                 if (onActiveWaveChangeRef.current) {
-                    onActiveWaveChangeRef.current(idx);
+                    let absoluteIdx = idx;
+                    if (idx !== null && previewCommand && previewCommand.type === 'WAVE' && previewCommand.waveIndex !== undefined) {
+                        absoluteIdx = previewCommand.waveIndex;
+                    }
+                    onActiveWaveChangeRef.current(absoluteIdx);
                 }
                 updateRouteVisibility();
             };

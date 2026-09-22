@@ -44,7 +44,7 @@ export class WaveDirector {
         return this.currentWave !== null || this.pendingWaves.length > 0;
     }
 
-    public update(dt: number, activeMonsterCount: number) {
+    public update(dt: number, getActiveMonsterCount: () => number) {
         if (!this.isPreviewing()) return;
 
         // Check if we need to start the next wave
@@ -101,7 +101,7 @@ export class WaveDirector {
             }
 
             // Check if current wave is finished (all spawned AND all cleared)
-            if (this.queuedSpawns.length === 0 && activeMonsterCount === 0) {
+            if (this.queuedSpawns.length === 0 && getActiveMonsterCount() === 0) {
                 this.currentWave = null;
                 if (this.onActiveWaveChange) {
                     this.onActiveWaveChange(null);
