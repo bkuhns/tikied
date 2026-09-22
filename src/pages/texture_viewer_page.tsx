@@ -33,9 +33,9 @@ import {
     ArrowUpRegular,
     ArrowDownRegular
 } from '@fluentui/react-icons';
-import { GameDataGateway, DEFAULT_ANIMATION_FPS } from './editor_api.js';
-import { tikiedTheme } from './theme.js';
-import assetTreeData from './asset_tree.json';
+import { GameDataGateway, DEFAULT_ANIMATION_FPS } from '../utils/editor_api.js';
+import { tikiedTheme } from '../utils/theme.js';
+import assetTreeData from '../data/asset_tree.json';
 
 export interface AssetNode {
     name: string;

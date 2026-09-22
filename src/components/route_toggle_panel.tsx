@@ -1,5 +1,5 @@
 import React from 'react';
-import { RouteToggle } from './stage_canvas_viewer.js';
+import { RouteToggle } from './stage_viewer.js';
 import { Button, Checkbox } from '@fluentui/react-components';
 import { SelectAllOnRegular, SelectAllOffRegular } from '@fluentui/react-icons';
 

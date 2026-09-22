@@ -1,14 +1,15 @@
 import React, { useState, useId, useEffect } from 'react';
-import { ISLANDS, StageInfo } from './stages_data.js';
-import { StageSelection, DIFFICULTY_LEVELS } from './shared_components.js';
-import { GameDataGateway } from './editor_api.js';
-import { StageCanvasViewer, ViewerToggles, RouteToggle } from './stage_canvas_viewer.js';
-import { RouteTogglePanel } from './route_toggle_panel.js';
-import { WaveTable } from './wave_table.js';
-import { tikiedTheme } from './theme.js';
-import { PJMArchive } from './pjm_archive.js';
-import { RepackerModal } from './repacker_app.js';
-import { TextureViewerModal } from './texture_viewer_app.js';
+import { ISLANDS, StageInfo } from '../data/stages_data.js';
+import { StageSelection } from '../components/stage_selection.js';
+import { DIFFICULTY_LEVELS } from '../data/difficulty_data.js';
+import { GameDataGateway } from '../utils/editor_api.js';
+import { StageViewer, ViewerToggles, RouteToggle } from '../components/stage_viewer.js';
+import { RouteTogglePanel } from '../components/route_toggle_panel.js';
+import { WaveTable } from '../components/wave_table.js';
+import { tikiedTheme } from '../utils/theme.js';
+import { PJMArchive } from '../utils/pjm_archive.js';
+import { RepackerModal } from './repacker_page.js';
+import { TextureViewerModal } from './texture_viewer_page.js';
 import { 
     FluentProvider, 
     Button, 
@@ -222,7 +223,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                         backgroundColor: '#111',
                         position: 'relative'
                     }}>
-                        <StageCanvasViewer 
+                        <StageViewer 
                             stageId={selectedStage.id}
                             gateway={gateway}
                             toggles={toggles}

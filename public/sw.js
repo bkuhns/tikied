@@ -1,9 +1,11 @@
-const CACHE_NAME = 'tikied-v1';
+const CACHE_NAME = 'tikied-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './styles.css',
-  './dist/main_app.js',
+  './runtime.js',
+  './vendors.js',
+  './main_app.js',
   './manifest.json',
   './favicon.ico',
   './logo-sm.png',

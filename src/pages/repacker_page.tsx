@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PJMArchive, ReplacementFile } from './pjm_archive.js';
+import { PJMArchive, ReplacementFile } from '../utils/pjm_archive.js';
 import { 
     Dialog, DialogSurface, DialogTitle, DialogBody, DialogContent, DialogActions,
     Button, Input, Label 

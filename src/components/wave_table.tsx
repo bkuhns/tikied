@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { StageSettings } from './stage_parser.js';
-import { GameDataGateway } from './editor_api.js';
-import { RoutesRenderer } from './routes_renderer.js';
-import { DIFFICULTY_DATA } from './shared_components.js';
+import { StageSettings } from '../core/stage_parser.js';
+import { GameDataGateway } from '../utils/editor_api.js';
+import { RoutesRenderer } from '../core/routes_renderer.js';
+import { DIFFICULTY_DATA } from '../data/difficulty_data.js';
 import { Button } from '@fluentui/react-components';
 import { PlayRegular, StopRegular } from '@fluentui/react-icons';
-import type { PreviewCommand } from './stage_inspector_app.js';
+import type { PreviewCommand } from '../pages/stage_inspector_page.js';
 
 interface WaveTableProps {
     stageId: number;

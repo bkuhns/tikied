@@ -1,9 +1,10 @@
 import React, { useState, useMemo, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
-import { PJMArchive } from './pjm_archive.js';
-import { ArchiveSelector, StageSelection } from './shared_components.js';
-import { StageInfo, ISLANDS } from './stages_data.js';
-import { PJMArchiveGateway, GameDataGateway } from './editor_api.js';
+import { PJMArchive } from '../utils/pjm_archive.js';
+import { ArchiveSelector } from '../components/archive_selector.js';
+import { StageSelection } from '../components/stage_selection.js';
+import { StageInfo, ISLANDS } from '../data/stages_data.js';
+import { PJMArchiveGateway, GameDataGateway } from '../utils/editor_api.js';
 import { 
     Toaster, 
     useToastController, 
@@ -15,9 +16,9 @@ import {
     Button
 } from '@fluentui/react-components';
 import { SlideGridRegular } from '@fluentui/react-icons';
-import { tikiedTheme } from './theme.js';
+import { tikiedTheme } from '../utils/theme.js';
 
-const StageInspectorApp = lazy(() => import('./stage_inspector_app.js').then(m => ({ default: m.StageInspectorApp })));
+const StageInspectorApp = lazy(() => import('./stage_inspector_page.js').then(m => ({ default: m.StageInspectorApp })));
 
 type ViewState = 'splash' | 'inspector';
 
