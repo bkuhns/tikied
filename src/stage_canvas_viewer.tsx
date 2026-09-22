@@ -700,9 +700,11 @@ export const StageCanvasViewer: React.FC<StageCanvasViewerProps> = ({
                         if (div && div.cols && div.rows) {
                             const fw = imgData.width / div.cols;
                             const fh = imgData.height / div.rows;
-                            const startRow = div.target_row !== undefined ? div.target_row : 0;
-                            const endRow = div.target_row !== undefined ? div.target_row + 1 : div.rows;
-                            for (let r = startRow; r < endRow; r++) {
+                            // ignore target_row for now, just animate all rows
+                            //const startRow = div.target_row !== undefined ? div.target_row : 0;
+                            //const endRow = div.target_row !== undefined ? div.target_row : div.rows;
+                            //for (let r = endRow - 1; r >= startRow; r--) {  //< Always animate bottom-to-top.
+                            for (let r = div.rows - 1; r > 0; r--) {  //< Always populate frames bottom-to-top.
                                 for (let c = 0; c < div.cols; c++) {
                                     frames.push(new Texture({
                                         source: fullTexture.source,

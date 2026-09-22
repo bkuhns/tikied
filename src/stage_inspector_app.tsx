@@ -136,7 +136,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                 borderBottom: `1px solid ${tikiedTheme.colorNeutralStroke1}`,
                 flexShrink: 0
             }}>
-                <Button size="small" appearance="outline" onClick={onBackToSplash}>← Load archives</Button>
+                {/* <Button size="small" appearance="outline" onClick={onBackToSplash}>← Load archives</Button> */}
                 
                 <Toolbar size="small">
                     <Menu closeOnScroll>
