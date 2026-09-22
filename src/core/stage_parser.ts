@@ -165,7 +165,7 @@ export class StageParser {
             }
         }
 
-        const stageDataMatch = text.match(/global\s+stage_data\s*=\s*\{([\s\S]*?)\n};/);
+        const stageDataMatch = text.match(/global\s+stage_data\s*=\s*\{([\s\S]*?)\n\s*};/);
         const waves: Record<string, {subWaves: SubWave[], startTime?: number, balloons?: boolean}> = {};
 
         if (stageDataMatch) {
