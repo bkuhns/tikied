@@ -196,17 +196,19 @@ export const StageSelection: React.FC<StageSelectionProps> = ({
                                         </Badge>
                                     </div>
                                 </AccordionHeader>
-                                <AccordionPanel style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '10px' }}>
-                                        {island.stages.map((stage, idx) => (
-                                            <StageCard 
-                                                key={`${island.id}-${stage.id}-${idx}`}
-                                                stage={stage}
-                                                thumbnailsUrl={thumbnailsUrl}
-                                                onSelectStage={onSelectStage}
-                                                handleOpenChange={handleOpenChange}
-                                            />
-                                        ))}
+                                <AccordionPanel className="stage-accordion-panel">
+                                    <div style={{ flex: 1, overflowY: 'auto', padding: '12px', height: '100%' }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '10px' }}>
+                                            {island.stages.map((stage, idx) => (
+                                                <StageCard 
+                                                    key={`${island.id}-${stage.id}-${idx}`}
+                                                    stage={stage}
+                                                    thumbnailsUrl={thumbnailsUrl}
+                                                    onSelectStage={onSelectStage}
+                                                    handleOpenChange={handleOpenChange}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
                                 </AccordionPanel>
                             </AccordionItem>

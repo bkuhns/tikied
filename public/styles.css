@@ -233,3 +233,5 @@ button:disabled {
 .modal-content { background: var(--neutral-bg-canvas); border: 1px solid var(--neutral-stroke-1); padding: 20px; border-radius: 8px; max-width: 800px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; }
 .stage-row { display: flex; gap: 15px; padding: 10px; border: 1px solid transparent; cursor: pointer; transition: background 0.2s; }
 .stage-row:hover { background: var(--neutral-bg-container); border: 1px solid var(--neutral-stroke-1); border-radius: 6px; }
+
+.stage-accordion-panel { display: flex !important; flex-direction: column; flex: 1 1 auto !important; overflow: hidden !important; height: 100% !important; }
