@@ -72,12 +72,10 @@ export class Monster {
 
         // Setup Balloon
         if (balloonTextures && balloonTextures.length > 0) {
-            this.balloonSprite = new Sprite(balloonTextures[0]);
+            this.balloonSprite = new Sprite(balloonTextures[balloonTextures.length - 1]);
             this.balloonSprite.anchor.set(0.5, 0.5);
             this.balloonSprite.rotation = 0;
-            // The balloon is positioned relative to the monster's center, but in the previous code 
-            // it was positioned globally. If we put it in the container, its offset is just Y = -10
-            this.balloonSprite.y = -10;
+            this.balloonSprite.y = -((this.bodySprite.height / 2) + 20);
             this.spriteContainer.addChild(this.balloonSprite);
         }
     }
@@ -103,7 +101,9 @@ export class Monster {
             return;
         }
 
-        this.bodySprite.update(dt);
+        if (!this.balloonSprite) {
+            this.bodySprite.update(dt);
+        }
 
         let scaleY = this.kindInfo.screen_size ?? 1.0;
         let scaleX = scaleY;
@@ -112,17 +112,34 @@ export class Monster {
         let localYOffset = 0;
         let localXOffset = 0;
 
-        const animType = this.kindInfo.anim_type;
+        if (this.balloonSprite) {
+            // Apply rocking animation when carried by balloon
+            rot = Math.sin(this.elapsedTime * 3.0) * 0.15;
+            
+            const hoverHeight = 40;
+            // Calculate distance based on actual sprite height rather than a fixed value
+            const attachDist = (this.bodySprite.height / 2) + 20;
+            
+            this.balloonSprite.rotation = rot;
+            // The balloon stays attached to the top of the rotating monster
+            this.balloonSprite.x = Math.sin(rot) * attachDist;
+            this.balloonSprite.y = -hoverHeight - (Math.cos(rot) * attachDist);
+            
+            // Monster hovers in the air
+            localYOffset -= hoverHeight;
+        } else {
+            const animType = this.kindInfo.anim_type;
 
-        if (animType === 'rock') {
-            rot = Math.sin(this.elapsedTime * 6.0) * 0.15;
-        } else if (animType === 'boss_hop') {
-            const hopY = Math.abs(Math.sin(this.elapsedTime * 4.0)) * 40;
-            localYOffset -= hopY;
-        } else if (animType === 'fly' || animType === 'boss_fly') {
-            localYOffset -= (animType === 'boss_fly') ? 64 : 48;
-            const floatAmp = (animType === 'boss_fly') ? 8.0 : 6.0;
-            localYOffset -= Math.sin(this.elapsedTime * 3.0) * floatAmp;
+            if (animType === 'rock') {
+                rot = Math.sin(this.elapsedTime * 6.0) * 0.15;
+            } else if (animType === 'boss_hop') {
+                const hopY = Math.abs(Math.sin(this.elapsedTime * 4.0)) * 40;
+                localYOffset -= hopY;
+            } else if (animType === 'fly' || animType === 'boss_fly') {
+                localYOffset -= (animType === 'boss_fly') ? 64 : 48;
+                const floatAmp = (animType === 'boss_fly') ? 8.0 : 6.0;
+                localYOffset -= Math.sin(this.elapsedTime * 3.0) * floatAmp;
+            }
         }
 
         // Apply transformations to body sprite (container handles world position)
