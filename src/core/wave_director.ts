@@ -30,6 +30,9 @@ export class WaveDirector {
         if (this.pendingWaves.length > 0) {
             const firstWave = this.pendingWaves[0];
             this.waveDelayTimer = firstWave.startTime !== undefined ? firstWave.startTime : 0.0;
+            if (this.onActiveWaveChange) {
+                this.onActiveWaveChange(0);
+            }
         }
     }
 

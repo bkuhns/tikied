@@ -10,6 +10,7 @@ import { TextureUtils, TreeSprite, StaticSprite } from '../utils/pixi_utils.js';
 import { Monster } from '../core/entities.js';
 import { WaveDirector, QueuedMonsterSpawn } from '../core/wave_director.js';
 import { SPRITE_SHEETS, SPRITE_PATHS, NEGATIVE_ROCK_MAPPING, gridOverrides, SpriteMeta } from '../data/sprite_data.js';
+import { ReggaeFont } from '../utils/reggae_font.js';
 
 export interface ViewerToggles {
     showTrees: boolean;
@@ -69,6 +70,9 @@ export const StageViewer: React.FC<StageViewerProps> = ({
     const enemiesContainerRef = useRef<Container | null>(null);
     const routesGraphicsRef = useRef<Graphics | null>(null);
     const hudSpriteRef = useRef<Sprite | null>(null);
+    const waveTextRef = useRef<Container | null>(null);
+    const currentWaveIndexRef = useRef<number | null>(null);
+    const reggaeFontRef = useRef<ReggaeFont>(new ReggaeFont());
     const animatedTreeSpritesRef = useRef<TreeSprite[]>([]);
 
     // Preview state refs
@@ -216,12 +220,17 @@ export const StageViewer: React.FC<StageViewerProps> = ({
             spritesContainer.sortableChildren = true;
             const routesGraphics = new Graphics();
             const hudSprite = new Sprite();
+            const waveText = new Container();
+            waveText.zIndex = 1000;
+            waveTextRef.current = waveText;
 
+            app.stage.sortableChildren = true;
             app.stage.addChild(bgSprite);
             app.stage.addChild(letterbox);
             app.stage.addChild(spritesContainer);
             app.stage.addChild(routesGraphics);
             app.stage.addChild(hudSprite);
+            app.stage.addChild(waveText);
 
             bgSpriteRef.current = bgSprite;
             letterboxRef.current = letterbox;
@@ -260,6 +269,17 @@ export const StageViewer: React.FC<StageViewerProps> = ({
             if (waveDirectorRef.current && isPreviewingRef.current) {
                 waveDirectorRef.current.update(dt, () => activeMonstersRef.current.length);
                 
+                if (waveTextRef.current && hudSpriteRef.current) {
+                    if (currentWaveIndexRef.current !== null && t.showHudBar) {
+                        waveTextRef.current.visible = true;
+                        reggaeFontRef.current.updateNumberContainer(waveTextRef.current, currentWaveIndexRef.current + 1, 0xD5A678);
+                        waveTextRef.current.x = hudSpriteRef.current.x + 55;
+                        waveTextRef.current.y = hudSpriteRef.current.y + 55;
+                    } else {
+                        waveTextRef.current.visible = false;
+                    }
+                }
+
                 const active = activeMonstersRef.current;
                 
                 // Advance active monsters
@@ -308,6 +328,8 @@ export const StageViewer: React.FC<StageViewerProps> = ({
             activeMonstersRef.current = [];
             waveDirectorRef.current.stopPreview();
             isPreviewingRef.current = false;
+            currentWaveIndexRef.current = null;
+            if (waveTextRef.current) waveTextRef.current.visible = false;
             updateRouteVisibility();
             if (onActiveWaveChangeRef.current) {
                 onActiveWaveChangeRef.current(null);
@@ -392,13 +414,14 @@ export const StageViewer: React.FC<StageViewerProps> = ({
             };
 
             wd.onActiveWaveChange = (idx: number | null) => {
-                if (onActiveWaveChangeRef.current) {
-                    let absoluteIdx = idx;
-                    if (idx !== null && previewCommand && previewCommand.type === 'WAVE' && previewCommand.waveIndex !== undefined) {
-                        absoluteIdx = previewCommand.waveIndex;
-                    }
-                    onActiveWaveChangeRef.current(absoluteIdx);
-                }
+            let absoluteIdx = idx;
+            if (idx !== null && previewCommand && previewCommand.type === 'WAVE' && previewCommand.waveIndex !== undefined) {
+                absoluteIdx = previewCommand.waveIndex;
+            }
+            currentWaveIndexRef.current = absoluteIdx;
+            if (onActiveWaveChangeRef.current) {
+                onActiveWaveChangeRef.current(absoluteIdx);
+            }
                 updateRouteVisibility();
             };
 
@@ -495,8 +518,22 @@ export const StageViewer: React.FC<StageViewerProps> = ({
             hudSprite.width = sw;
             hudSprite.height = 128;
             hudSprite.visible = true;
+
+            if (waveTextRef.current) {
+                waveTextRef.current.x = dx + 55;
+                waveTextRef.current.y = hudSprite.y + 55;
+                if (currentWaveIndexRef.current !== null) {
+                    waveTextRef.current.visible = true;
+                    reggaeFontRef.current.updateNumberContainer(waveTextRef.current, currentWaveIndexRef.current + 1, 0xD5A678);
+                } else {
+                    waveTextRef.current.visible = false;
+                }
+            }
         } else {
             hudSprite.visible = false;
+            if (waveTextRef.current) {
+                waveTextRef.current.visible = false;
+            }
         }
 
         // Render routes (on-demand only, not every tick!)
@@ -697,6 +734,11 @@ export const StageViewer: React.FC<StageViewerProps> = ({
                     sceneRef.current.objectInstances = decorations.objects;
                     sceneRef.current.rockInstances = decorations.rocks;
 
+                    if (onStatusChangeRef.current) onStatusChangeRef.current(`Loading reggae font...`);
+                    const fontImgData = await gateway.getSpriteSheet('reggae_24', 'data-common/textures/4bit/fonts/reggae_24.dds');
+                    if (fontImgData) {
+                        reggaeFontRef.current.initialize(fontImgData);
+                    }
                     if (onStatusChangeRef.current) onStatusChangeRef.current(`Loading sprite sheets...`);
                     for (const t of Array.from(decorations.typesToLoad)) {
                         const spritePath = SPRITE_PATHS[t];
