@@ -110,7 +110,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                     <ToastTitle>Error</ToastTitle>
                     <ToastBody>{statusStr}</ToastBody>
                 </Toast>,
-                { intent: "error" }
+                { intent: "error", toastId: "stage-status-error" }
             );
         } else {
             dispatchToast(
@@ -118,7 +118,7 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                     <ToastTitle>{intent === 'success' ? 'Success' : 'Notice'}</ToastTitle>
                     <ToastBody>{statusStr}</ToastBody>
                 </Toast>,
-                { intent }
+                { intent, toastId: "stage-status" }
             );
         }
     };
