@@ -177,7 +177,7 @@ export const WaveTable: React.FC<WaveTableProps> = ({
                     }
 
                     return (
-                        <div key={wave.id} className="wave-card">
+                        <div key={wave.id} style={{ marginBottom: '20px', paddingBottom: '15px', borderBottom: '1px solid var(--neutral-stroke-1)' }}>
                             <div className="wave-header" style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '10px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     {barIconsUrl ? (
@@ -224,15 +224,15 @@ export const WaveTable: React.FC<WaveTableProps> = ({
                                     Coins: 🪙 {wave.coinsTotal} | Gems: 💎 {wave.gemsTotal}
                                 </div>
                             </div>
-                            <table className="subwave-table">
+                            <table className="subwave-table" style={{ fontSize: '0.9em' }}>
                                 <thead>
                                     <tr>
                                         <th>Monster</th>
                                         <th>Count</th>
                                         <th>HP</th>
                                         <th>Route</th>
-                                        <th>Start Time (s)</th>
-                                        <th>Interval (s)</th>
+                                        <th title="Start Time (s)">Start (s)</th>
+                                        <th title="Interval (s)">Int. (s)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -264,7 +264,7 @@ export const WaveTable: React.FC<WaveTableProps> = ({
                                                                 width: '12px',
                                                                 height: '12px',
                                                                 backgroundColor: RoutesRenderer.getRouteColor(sub.route),
-                                                                border: '1px solid #000'
+                                                                border: '1px solid var(--neutral-stroke-1)'
                                                             }}></div>
                                                             {sub.route+1}
                                                         </div>
