@@ -270,11 +270,9 @@ export const StageViewer: React.FC<StageViewerProps> = ({
                         active.splice(i, 1);
                     } else {
                         const pos = routesRenderer.getPointOnRoute(m.routeIndex, m.ratio);
-                        const nextPos = routesRenderer.getPointOnRoute(m.routeIndex, Math.min(1.0, m.ratio + 0.005));
                         
                         if (pos) {
-                            const isFlipped = nextPos ? (nextPos.x - pos.x) < -0.01 : false;
-                            m.update(dt, pos, isFlipped);
+                            m.update(dt, pos);
                         }
                     }
                 }

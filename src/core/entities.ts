@@ -84,9 +84,8 @@ export class Monster {
     /**
      * @param dt Delta time in seconds
      * @param pos The position on the route
-     * @param isFlipped Whether the monster is moving left and should be flipped horizontally
      */
-    public update(dt: number, pos: { x: number, y: number }, isFlipped: boolean) {
+    public update(dt: number, pos: { x: number, y: number }) {
         const dRatio = (this.maxSpeed * this.speedMultiplier / this.routeLength) * dt;
         this.ratio += dRatio;
         this.elapsedTime += dt;
@@ -98,7 +97,7 @@ export class Monster {
         this.bodySprite.update(dt);
 
         let scaleY = this.kindInfo.screen_size ?? 1.0;
-        let scaleX = isFlipped ? -scaleY : scaleY;
+        let scaleX = scaleY;
         let rot = 0.0;
         
         let localYOffset = 0;
@@ -111,18 +110,12 @@ export class Monster {
         } else if (animType === 'boss_hop') {
             const hopY = Math.abs(Math.sin(this.elapsedTime * 4.0)) * 40;
             localYOffset -= hopY;
-            const squish = Math.cos(this.elapsedTime * 8.0) * 0.15;
-            if (hopY < 5) {
-                scaleY = scaleY * (1.0 - Math.abs(squish));
-            }
         } else if (animType === 'fly' || animType === 'boss_fly') {
             localYOffset -= (animType === 'boss_fly') ? 64 : 48;
             const floatAmp = (animType === 'boss_fly') ? 8.0 : 6.0;
             localYOffset -= Math.sin(this.elapsedTime * 3.0) * floatAmp;
         } else if (animType === 'scuttle') {
             localXOffset += Math.sin(this.elapsedTime * 20.0) * 1.5;
-        } else if (animType === 'boss_pulse') {
-            scaleY = scaleY * (1.0 + Math.sin(this.elapsedTime * 4.0) * 0.10);
         }
 
         // Apply transformations to body sprite (container handles world position)
