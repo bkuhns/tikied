@@ -224,7 +224,7 @@ export const WaveTable: React.FC<WaveTableProps> = ({
                                     Coins: 🪙 {wave.coinsTotal} | Gems: 💎 {wave.gemsTotal}
                                 </div>
                             </div>
-                            <table className="subwave-table" style={{ fontSize: '0.9em' }}>
+                            <table className="subwave-table" style={{ fontSize: '0.9em', backgroundColor: 'var(--neutral-bg-container)' }}>
                                 <thead>
                                     <tr>
                                         <th>Monster</th>

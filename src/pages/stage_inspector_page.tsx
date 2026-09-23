@@ -254,7 +254,8 @@ export const StageInspectorApp: React.FC<StageInspectorAppProps> = ({
                     borderLeft: `1px solid ${tikiedTheme.colorNeutralStroke1}`, 
                     backgroundColor: tikiedTheme.colorNeutralBackground1,
                     overflowY: 'auto',
-                    padding: '15px'
+                    padding: '15px',
+                    width: 'min-content'
                 }}>
                     <div style={{ marginBottom: '15px' }}>
                         <Menu closeOnScroll>
