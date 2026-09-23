@@ -406,7 +406,9 @@ export const StageViewer: React.FC<StageViewerProps> = ({
                         item.routeIndex,
                         routeLength,
                         item.isOnFire,
-                        item.isCold
+                        item.isCold,
+                        item.isShielded,
+                        item.isMagicResistant
                     );
                     enemiesContainerRef.current.addChild(monster.spriteContainer);
                     activeMonstersRef.current.push(monster);

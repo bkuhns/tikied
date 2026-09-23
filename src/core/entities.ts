@@ -15,6 +15,8 @@ export class Monster {
     public kindInfo: EnemyKindInfo;
     public isOnFire: boolean;
     public isCold: boolean;
+    public isShielded: boolean;
+    public isMagicResistant: boolean;
     
     private elapsedTime: number = 0;
 
@@ -25,7 +27,9 @@ export class Monster {
         routeIndex: number,
         routeLength: number,
         isOnFire: boolean,
-        isCold: boolean
+        isCold: boolean,
+        isShielded: boolean,
+        isMagicResistant: boolean
     ) {
         this.kindInfo = kindInfo;
         this.routeIndex = routeIndex;
@@ -35,10 +39,11 @@ export class Monster {
         
         this.isOnFire = isOnFire;
         this.isCold = isCold;
+        this.isShielded = isShielded;
+        this.isMagicResistant = isMagicResistant;
         
         this.speedMultiplier = 1.0;
         if (isOnFire) this.speedMultiplier = 1.5;
-        else if (isCold) this.speedMultiplier = 0.5;
 
         // Container to hold both the body and the balloon
         this.spriteContainer = new Container();
@@ -57,6 +62,10 @@ export class Monster {
             this.bodySprite.tint = 0xFF8844;
         } else if (isCold) {
             this.bodySprite.tint = 0x88CCFF;
+        } else if (isShielded) {
+            this.bodySprite.tint = 0x99FF99;
+        } else if (isMagicResistant) {
+            this.bodySprite.tint = 0xFF9999;
         }
 
         this.spriteContainer.addChild(this.bodySprite);
@@ -114,8 +123,6 @@ export class Monster {
             localYOffset -= (animType === 'boss_fly') ? 64 : 48;
             const floatAmp = (animType === 'boss_fly') ? 8.0 : 6.0;
             localYOffset -= Math.sin(this.elapsedTime * 3.0) * floatAmp;
-        } else if (animType === 'scuttle') {
-            localXOffset += Math.sin(this.elapsedTime * 20.0) * 1.5;
         }
 
         // Apply transformations to body sprite (container handles world position)

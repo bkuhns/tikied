@@ -16,6 +16,7 @@ describe('WaveDirector', () => {
     it('should spawn monsters over time based on their subwave weight (interval)', () => {
         director.startPreview([
             {
+                id: "mock_wave", coinsTotal: 0, gemsTotal: 0,
                 startTime: 2.0,
                 balloons: false,
                 subWaves: [
@@ -74,6 +75,7 @@ describe('WaveDirector', () => {
     it('should not instantly cancel the wave if all monsters spawn on the first frame', () => {
         director.startPreview([
             {
+                id: "mock_wave", coinsTotal: 0, gemsTotal: 0,
                 startTime: undefined, // 0
                 balloons: false,
                 subWaves: [
@@ -111,11 +113,13 @@ describe('WaveDirector', () => {
 
         director.startPreview([
             {
+                id: "mock_wave", coinsTotal: 0, gemsTotal: 0,
                 startTime: 0, balloons: false, subWaves: [
                     { monster: { id: 'm1', baseName: 'M1', iconIndex: 0, isShielded: false, isMagicResistant: false, isCold: false, isOnFire: false, baseHealth: 1 }, count: 1, route: 0, weight: 1.0, carry: false }
                 ]
             }, // Wave 0
             {
+                id: "mock_wave", coinsTotal: 0, gemsTotal: 0,
                 startTime: 1.0, balloons: false, subWaves: [
                     { monster: { id: 'm2', baseName: 'M2', iconIndex: 0, isShielded: false, isMagicResistant: false, isCold: false, isOnFire: false, baseHealth: 1 }, count: 1, route: 0, weight: 1.0, carry: false }
                 ]

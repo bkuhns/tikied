@@ -7,6 +7,8 @@ export interface QueuedMonsterSpawn {
     carry: boolean;
     isOnFire: boolean;
     isCold: boolean;
+    isShielded: boolean;
+    isMagicResistant: boolean;
 }
 
 export class WaveDirector {
@@ -81,7 +83,9 @@ export class WaveDirector {
                             routeIndex,
                             carry: subWave.carry ?? false,
                             isOnFire: monsterDef.isOnFire,
-                            isCold: monsterDef.isCold
+                            isCold: monsterDef.isCold,
+                            isShielded: monsterDef.isShielded,
+                            isMagicResistant: monsterDef.isMagicResistant
                         });
                     }
                 }

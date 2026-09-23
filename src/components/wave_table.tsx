@@ -152,7 +152,7 @@ export const WaveTable: React.FC<WaveTableProps> = ({
                     const firstMonster = wave.subWaves[0]?.monster;
                     const isThisWaveRunning = (activePreview?.type === 'WAVE' && activePreview?.waveIndex === i) || (currentActiveWaveIndex === i);
                     
-                    let iconStyle = {};
+                    let iconStyle: React.CSSProperties = {};
                     let balloonStyle = {};
                     if (barIconsUrl && barIconsSize && firstMonster) {
                         const iconW = barIconsSize.w / 5;
@@ -160,6 +160,12 @@ export const WaveTable: React.FC<WaveTableProps> = ({
                         
                         const col = firstMonster.iconIndex % 5;
                         const row = Math.floor(firstMonster.iconIndex / 5);
+
+                        let filter = undefined;
+                        if (firstMonster.isCold) filter = 'sepia(1) saturate(10) hue-rotate(190deg) brightness(0.9)';
+                        else if (firstMonster.isShielded) filter = 'sepia(1) saturate(10) hue-rotate(70deg) brightness(0.9)';
+                        else if (firstMonster.isMagicResistant) filter = 'sepia(1) saturate(10) hue-rotate(330deg) brightness(0.9)';
+
                         iconStyle = {
                             backgroundImage: `url(${barIconsUrl})`,
                             backgroundSize: `${barIconsSize.w}px ${barIconsSize.h}px`,
@@ -167,12 +173,14 @@ export const WaveTable: React.FC<WaveTableProps> = ({
                             width: `${iconW}px`,
                             height: `${iconH}px`,
                             transform: `scale(${32 / iconW})`, 
-                            transformOrigin: 'top left'
+                            transformOrigin: 'top left',
+                            filter: filter
                         };
 
                         balloonStyle = {
                             ...iconStyle,
-                            backgroundPosition: `-${4 * iconW}px -${0 * iconH}px`
+                            backgroundPosition: `-${4 * iconW}px -${0 * iconH}px`,
+                            filter: undefined // Don't tint balloons
                         };
                     }
 
